@@ -1,7 +1,4 @@
 # Charlie's environment
 venv
-*.__pycache__/
-
-# Jenny's environment
-/__pycache__/
+__pycache__/
 .env
