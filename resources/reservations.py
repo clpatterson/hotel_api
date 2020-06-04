@@ -1,4 +1,4 @@
-from flask import abort
+from flask import abort, request
 from flask_restful import Resource, reqparse, fields, marshal
 
 # TODO: create a postgres database and store these there
@@ -33,7 +33,9 @@ reservations = [
 reservation_fields = {
     'checkin_date': fields.String,
     'checkout_date': fields.String,
-    'guest_name': fields.String,
+    'guest_full_name': fields.String,
+    'hotel_id': fields.Integer,
+    'room_id': fields.Integer,
     'uri': fields.Url('reservation')
 }
 
@@ -43,6 +45,8 @@ class ReservationList(Resource):
         self.reqparse.add_argument('checkin_date', type = str, required = True,
             help = "No checkin date provided.", location = 'json')
         self.reqparse.add_argument('checkout_date', type = str, required = True,
+            help = "No checkout date provided.", location = 'json')
+        self.reqparse.add_argument('hotel_id', type = int, required = True,
             help = "No checkout date provided.", location = 'json')
         self.reqparse.add_argument('guest_full_name', type = str, required = True,
             help = "No guest name provided.", location = 'json')
@@ -60,7 +64,7 @@ class ReservationList(Resource):
                         'checkin_date': args['checkin_date'],
                         'checkout_date': args['checkout_date'],
                         'guest_full_name': args['guest_full_name'],
-                        'hotel_id': 1,
+                        'hotel_id': args['hotel_id'],
                         'room_id': 1 # ToDo: Query inventory and assign
                        }
         reservations.append(reservation)
@@ -69,12 +73,14 @@ class ReservationList(Resource):
 class Reservation(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser() # these lines are for input validation
-        self.reqparse.add_argument('checkin_date', type = str,
+        self.reqparse.add_argument('checkin_date', type = str, required = True,
             help = "No checkin date provided.", location = 'json')
-        self.reqparse.add_argument('checkout_date', type = str,
-           help = "No checkout date provided.", location = 'json')
-        self.reqparse.add_argument('guest_full_name', type = str,
-           help = "No guest name provided.", location = 'json')
+        self.reqparse.add_argument('checkout_date', type = str, required = True,
+            help = "No checkout date provided.", location = 'json')
+        self.reqparse.add_argument('hotel_id', type = int, required = True,
+            help = "No checkout date provided.", location = 'json')
+        self.reqparse.add_argument('guest_full_name', type = str, required = True,
+            help = "No guest name provided.", location = 'json')
         super(Reservation, self).__init__()
     
     def get(self, id):
@@ -102,4 +108,4 @@ class Reservation(Resource):
         if len(reservation) == 0:
             abort(404)
         reservations.remove(reservation[0])
-        return {'result': True}
+        return {'deleted': True}
