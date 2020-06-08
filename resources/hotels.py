@@ -1,3 +1,5 @@
+
+from datetime import datetime
 from flask import abort
 from flask_restful import Resource, reqparse, fields, marshal
 
@@ -9,7 +11,8 @@ hotels = [
     'total_double_rooms': 10,
     'total_queen_rooms': 10,
     'total_king_rooms': 10,
-    'created_date': '2020-06-03'
+    'created_date': u'2020-05-01T14:09:13.702495',
+    'last_updated_date': u'2020-05-01T14:09:13.702495'
     }
 ]
 
@@ -20,20 +23,24 @@ hotel_fields = {
     'total_queen_rooms': fields.Integer,
     'total_king_rooms': fields.Integer,
     'created_date' : fields.String,
+    'last_updated_date' : fields.String,
     'uri': fields.Url('hotel')
 }
 
+# Parser for HotelList and Hotel resources
+reqparse = reqparse.RequestParser()
+reqparse.add_argument('hotel_name', type = str, required = True,
+            help = "No hotel name provided.", location = 'json')
+reqparse.add_argument('total_double_rooms', type = int, required = True,
+    help = "Total number of double rooms in the hotel not provided.", location = 'json')
+reqparse.add_argument('total_queen_rooms', type = int, required = True,
+    help = "Total number of queen rooms in the hotel not provided.", location = 'json')
+reqparse.add_argument('total_king_rooms', type = int, required = True,
+    help = "Total number of king rooms in the hotel not provided.", location = 'json')
+
 class HotelList(Resource):
     def __init__(self):
-        self.reqparse = reqparse.RequestParser() # these lines are for input validation
-        self.reqparse.add_argument('hotel_name', type = str, required = True,
-            help = "No hotel name provided.", location = 'json')
-        self.reqparse.add_argument('total_double_rooms', type = int, required = True,
-            help = "Total number of double rooms in the hotel not provided.", location = 'json')
-        self.reqparse.add_argument('total_queen_rooms', type = int, required = True,
-            help = "Total number of queen rooms in the hotel not provided.", location = 'json')
-        self.reqparse.add_argument('total_king_rooms', type = int, required = True,
-            help = "Total number of king rooms in the hotel not provided.", location = 'json')
+        self.reqparse = reqparse
         super(HotelList, self).__init__()
 
     def get(self):
@@ -49,23 +56,15 @@ class HotelList(Resource):
                  'total_double_rooms': args['total_double_rooms'],
                  'total_queen_rooms': args['total_queen_rooms'],
                  'total_king_rooms': args['total_king_rooms'],
-                 'created_date': '2020-06-03'
-                 }
-                 
+                 'created_date': datetime.now().isoformat(),
+                 'last_updated_date': datetime.now().isoformat()
+                 }    
         hotels.append(hotel)
         return {'hotels': marshal(hotel, hotel_fields)}, 201
 
 class Hotel(Resource):
     def __init__(self):
-        self.reqparse = reqparse.RequestParser() # these lines are for input validation
-        self.reqparse.add_argument('hotel_name', type = str, required = True,
-            help = "No hotel name provided.", location = 'json')
-        self.reqparse.add_argument('total_double_rooms', type = int, required = True,
-            help = "Total number of double rooms in the hotel not provided.", location = 'json')
-        self.reqparse.add_argument('total_queen_rooms', type = int, required = True,
-            help = "Total number of queen rooms in the hotel not provided.", location = 'json')
-        self.reqparse.add_argument('total_king_rooms', type = int, required = True,
-            help = "Total number of king rooms in the hotel not provided.", location = 'json')
+        self.reqparse = reqparse
         super(Hotel, self).__init__()
     
     def get(self, id):
@@ -85,6 +84,7 @@ class Hotel(Resource):
         for k,v in args.items():
             if v is not None:
                 hotel[k] = v
+        hotel['last_updated_date'] = datetime.now().isoformat()
         return { 'hotel': marshal(hotel, hotel_fields)}
     
     def delete(self, id):
