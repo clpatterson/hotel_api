@@ -98,7 +98,6 @@ class ReservationList(Resource):
                         'last_updated_date': datetime.now().isoformat(),
                         'is_cancelled': False,
                         'is_completed': False
-
                        }
         reservations.append(reservation)
         return {'reservations': marshal(reservation, reservation_fields)}, 201
