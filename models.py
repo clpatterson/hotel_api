@@ -34,6 +34,10 @@ class Reservations(db.Model):
 
     def __repr__(self):
         return f'<Reservation_id {self.id}>'
+    
+    def add_reservation(self):
+        db.session.add(self)
+        db.session.commit()
 
 class Hotels(db.Model):
     __tablename__ = 'hotels'
