@@ -68,10 +68,8 @@ class Hotel(Resource):
     
     def get(self, id):
         """List specified hotel."""
-        hotel = [hotel for hotel in hotels if hotel['id'] == id]
-        if len(hotel) == 0:
-            abort(404)
-        return { 'hotel': marshal(hotel[0], hotel_fields)} 
+        hotel = Hotels.query.get_or_404(id)
+        return { 'hotel': marshal(hotel, hotel_fields)} 
     
     def put(self, id):
         """Update specified hotel."""
