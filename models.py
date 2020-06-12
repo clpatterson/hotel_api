@@ -41,6 +41,10 @@ class Hotels(db.Model):
     def __repr__(self):
         return f'<Hotel {self.name}>'
 
+    def add_hotel(self):
+        db.session.add(self)
+        db.session.commit()
+
 class Rooms(db.Model):
     __tablename__ = 'rooms'
     id = db.Column(db.Integer, primary_key=True)
