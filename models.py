@@ -13,6 +13,10 @@ class Users(db.Model):
 
     def __repr__(self):
         return f'<User {self.username}>'
+    
+    def add_user(self):
+        db.session.add(self)
+        db.session.commit()
 
 class Reservations(db.Model):
     __tablename__ = 'reservations'
