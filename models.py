@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
 class Users(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -13,10 +14,11 @@ class Users(db.Model):
 
     def __repr__(self):
         return f'<User {self.username}>'
-    
+
     def add_user(self):
         db.session.add(self)
         db.session.commit()
+
 
 class Reservations(db.Model):
     __tablename__ = 'reservations'
@@ -24,20 +26,23 @@ class Reservations(db.Model):
     checkin_date = db.Column(db.DateTime, nullable=False)
     checkout_date = db.Column(db.DateTime, nullable=False)
     guest_full_name = db.Column(db.String, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'), nullable=False)
+    hotel_id = db.Column(db.Integer, db.ForeignKey(
+        'hotels.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_date = db.Column(db.DateTime, nullable=False)
     last_updated_date = db.Column(db.DateTime, nullable=False)
     is_cancelled = db.Column(db.Boolean, nullable=False)
     is_completed = db.Column(db.Boolean, nullable=False)
-    room_inventory = db.relationship('RoomInventory', backref='reservations', lazy=True)
+    room_inventory = db.relationship(
+        'RoomInventory', backref='reservations', lazy=True)
 
     def __repr__(self):
         return f'<Reservation_id {self.id}>'
-    
+
     def add_reservation(self):
         db.session.add(self)
         db.session.commit()
+
 
 class Hotels(db.Model):
     __tablename__ = 'hotels'
@@ -49,25 +54,40 @@ class Hotels(db.Model):
     def __repr__(self):
         return f'<Hotel {self.name}>'
 
-    def add_hotel(self):
+    def add_hotel(self, total_double_rooms, total_queen_rooms, total_king_rooms):
         db.session.add(self)
+        db.session.flush()
+        for room in range(total_double_rooms):
+            room = Rooms(type='double', hotel_id=self.id)
+            db.session.add(room)
+        for room in range(total_queen_rooms):
+            room = Rooms(type='queen', hotel_id=self.id)
+            db.session.add(room)
+        for room in range(total_king_rooms):
+            room = Rooms(type='king', hotel_id=self.id)
+            db.session.add(room)
         db.session.commit()
 
 class Rooms(db.Model):
     __tablename__ = 'rooms'
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'), nullable=False)
+    hotel_id = db.Column(db.Integer, db.ForeignKey(
+        'hotels.id'), nullable=False)
 
     def __repr__(self):
         return f'<Hotel_id {self.hotel_id} Room_id {self.id}>'
 
+
 class RoomInventory(db.Model):
     __tablename__ = 'room_inventory'
     date = db.Column(db.DateTime, primary_key=True)
-    hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'), primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), primary_key=True)
-    reservation_id = db.Column(db.Integer, db.ForeignKey('reservations.id'), nullable=True)
+    hotel_id = db.Column(db.Integer, db.ForeignKey(
+        'hotels.id'), primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey(
+        'rooms.id'), primary_key=True)
+    reservation_id = db.Column(db.Integer, db.ForeignKey(
+        'reservations.id'), nullable=True)
 
     def __repr__(self):
         return f'<Date {self.date} Hotel_id {self.hotel_id} Room_id {self.room_id}>'
