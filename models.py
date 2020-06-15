@@ -13,6 +13,10 @@ class Users(db.Model):
 
     def __repr__(self):
         return f'<User {self.username}>'
+    
+    def add_user(self):
+        db.session.add(self)
+        db.session.commit()
 
 class Reservations(db.Model):
     __tablename__ = 'reservations'
@@ -30,6 +34,10 @@ class Reservations(db.Model):
 
     def __repr__(self):
         return f'<Reservation_id {self.id}>'
+    
+    def add_reservation(self):
+        db.session.add(self)
+        db.session.commit()
 
 class Hotels(db.Model):
     __tablename__ = 'hotels'
@@ -40,6 +48,10 @@ class Hotels(db.Model):
 
     def __repr__(self):
         return f'<Hotel {self.name}>'
+
+    def add_hotel(self):
+        db.session.add(self)
+        db.session.commit()
 
 class Rooms(db.Model):
     __tablename__ = 'rooms'
