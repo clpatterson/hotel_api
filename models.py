@@ -1,5 +1,6 @@
-#from api import db
+from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 
 db = SQLAlchemy()
 
@@ -55,6 +56,7 @@ class Hotels(db.Model):
         return f'<Hotel {self.name}>'
 
     def add_hotel(self, total_double_rooms, total_queen_rooms, total_king_rooms):
+        """Add a new hotel and its rooms to the database."""
         db.session.add(self)
         db.session.flush()
         for room in range(total_double_rooms):
@@ -67,6 +69,63 @@ class Hotels(db.Model):
             room = Rooms(type='king', hotel_id=self.id)
             db.session.add(room)
         db.session.commit()
+
+    # def get_hotel(self): # this will be a static method
+    #     pass
+
+    def update_hotel(self, data):
+        """Update a hotel's data in the database."""
+        # get hotel data
+        # compare rooms
+        # if fewer rooms, randomly delete from given type
+        # if more rooms, add given type
+        #
+        pass
+
+    def delete_hotel(self):
+        """Delete a hotel from the database."""
+        db.session.delete(self)
+        db.session.commit()
+
+    def get_room_counts(self):
+        """Return counts of double, queen, and king rooms."""
+        rooms = db.session.query(func.count(Rooms.type), Rooms.type).\
+            group_by(Rooms.type).\
+            filter(Rooms.hotel_id == self.id).all()
+        if rooms == []:  # This will be deleted after bad records are deleted
+            return None
+        return {
+            'total_double_rooms': rooms[0][0],
+            'total_queen_rooms': rooms[1][0],
+            'total_king_rooms': rooms[2][0]
+        }
+
+    @staticmethod
+    def get_hotels():
+        """Return a list of hotels with room counts from the database."""
+        hotels = Hotels.query.all()
+        hotel_list = []
+        for hotel in hotels:
+            rooms = hotel.get_room_counts()
+            if rooms == None:  # This will be removed after bad db records removed
+                continue
+            hotel = hotel.__dict__  # convert row object to dict
+            hotel = {**hotel, **rooms}  # merge dictionaries
+            # TODO: change database schema to include
+            hotel['last_updated_date'] = datetime.now()
+            hotel_list.append(hotel)
+        return hotel_list
+
+    @staticmethod
+    def get_hotel(id):
+        """Return a single hotel with rooms count from the database."""
+        hotel = Hotels.query.get_or_404(id)
+        rooms = hotel.get_room_counts()
+        hotel = {**hotel.__dict__, **rooms}  # merge dictionaries
+        # TODO: change database schema to include
+        hotel['last_updated_date'] = datetime.now()
+        return hotel
+
 
 class Rooms(db.Model):
     __tablename__ = 'rooms'
