@@ -5,12 +5,16 @@ from sqlalchemy import func
 db = SQLAlchemy()
 
 
-class Users(db.Model):
+class BaseTable(object):
+    created_date = db.Column(db.DateTime, nullable=False)
+    last_modified_date = db.Column(db.DateTime, nullable=False)
+
+
+class Users(BaseTable, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
-    created_date = db.Column(db.DateTime, nullable=False)
     reservations = db.relationship('Reservations', backref='users', lazy=True)
 
     def __repr__(self):
@@ -21,7 +25,7 @@ class Users(db.Model):
         db.session.commit()
 
 
-class Reservations(db.Model):
+class Reservations(BaseTable, db.Model):
     __tablename__ = 'reservations'
     id = db.Column(db.Integer, primary_key=True)
     checkin_date = db.Column(db.DateTime, nullable=False)
@@ -30,8 +34,6 @@ class Reservations(db.Model):
     hotel_id = db.Column(db.Integer, db.ForeignKey(
         'hotels.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    created_date = db.Column(db.DateTime, nullable=False)
-    last_updated_date = db.Column(db.DateTime, nullable=False)
     is_cancelled = db.Column(db.Boolean, nullable=False)
     is_completed = db.Column(db.Boolean, nullable=False)
     room_inventory = db.relationship(
@@ -45,46 +47,19 @@ class Reservations(db.Model):
         db.session.commit()
 
 
-class Hotels(db.Model):
+class Hotels(BaseTable, db.Model):
     __tablename__ = 'hotels'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
-    created_date = db.Column(db.DateTime, nullable=False)
-    rooms = db.relationship('Rooms', backref='hotels', lazy=True)
+    rooms = db.relationship('Rooms', backref='hotels',
+                            lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Hotel {self.name}>'
 
-    def add_hotel(self, total_double_rooms, total_queen_rooms, total_king_rooms):
-        """Add a new hotel and its rooms to the database."""
+    def add_hotel(self):
+        """Add a new hotel to the database."""
         db.session.add(self)
-        db.session.flush()
-        for room in range(total_double_rooms):
-            room = Rooms(type='double', hotel_id=self.id)
-            db.session.add(room)
-        for room in range(total_queen_rooms):
-            room = Rooms(type='queen', hotel_id=self.id)
-            db.session.add(room)
-        for room in range(total_king_rooms):
-            room = Rooms(type='king', hotel_id=self.id)
-            db.session.add(room)
-        db.session.commit()
-
-    # def get_hotel(self): # this will be a static method
-    #     pass
-
-    def update_hotel(self, data):
-        """Update a hotel's data in the database."""
-        # get hotel data
-        # compare rooms
-        # if fewer rooms, randomly delete from given type
-        # if more rooms, add given type
-        #
-        pass
-
-    def delete_hotel(self):
-        """Delete a hotel from the database."""
-        db.session.delete(self)
         db.session.commit()
 
     def get_room_counts(self):
@@ -93,12 +68,31 @@ class Hotels(db.Model):
             group_by(Rooms.type).\
             filter(Rooms.hotel_id == self.id).all()
         if rooms == []:  # This will be deleted after bad records are deleted
-            return None
-        return {
-            'total_double_rooms': rooms[0][0],
-            'total_queen_rooms': rooms[1][0],
-            'total_king_rooms': rooms[2][0]
-        }
+            return {
+                'total_double_rooms': 0,
+                'total_queen_rooms': 0,
+                'total_king_rooms': 0
+            }
+        else:
+            return {
+                'total_double_rooms': rooms[0][0],
+                'total_queen_rooms': rooms[1][0],
+                'total_king_rooms': rooms[2][0]
+            }
+
+    @staticmethod
+    def update_hotel(id, data):
+        """Update a hotel's data in the database."""
+        hotel = Hotels.get_hotel(id)
+        hotel['name'] = data['name']
+        return hotel
+
+    @staticmethod
+    def delete_hotel(id):
+        """Delete a hotel from the database."""
+        hotel = Hotels.query.get_or_404(id)
+        db.session.delete(hotel)
+        db.session.commit()
 
     @staticmethod
     def get_hotels():
@@ -118,7 +112,7 @@ class Hotels(db.Model):
 
     @staticmethod
     def get_hotel(id):
-        """Return a single hotel with rooms count from the database."""
+        """Return a single hotel with room counts from the database."""
         hotel = Hotels.query.get_or_404(id)
         rooms = hotel.get_room_counts()
         hotel = {**hotel.__dict__, **rooms}  # merge dictionaries
@@ -127,7 +121,7 @@ class Hotels(db.Model):
         return hotel
 
 
-class Rooms(db.Model):
+class Rooms(BaseTable, db.Model):
     __tablename__ = 'rooms'
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String, nullable=False)
@@ -138,8 +132,9 @@ class Rooms(db.Model):
         return f'<Hotel_id {self.hotel_id} Room_id {self.id}>'
 
 
-class RoomInventory(db.Model):
+class RoomInventory(BaseTable, db.Model):
     __tablename__ = 'room_inventory'
+    id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, primary_key=True)
     hotel_id = db.Column(db.Integer, db.ForeignKey(
         'hotels.id'), primary_key=True)
