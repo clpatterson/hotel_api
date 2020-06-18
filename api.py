@@ -15,6 +15,7 @@ def create_app(config_name):
 
     from resources.reservations import ReservationList, Reservation
     from resources.hotels import HotelList, Hotel
+    from resources.rooms import RoomList, Room
     from resources.users import UserList, User
 
     # Register the routes for resources available through the api
@@ -26,6 +27,10 @@ def create_app(config_name):
                      endpoint='hotels')
     api.add_resource(Hotel, '/hotel/api/v1.0/hotels/<int:id>',
                      endpoint='hotel')
+    api.add_resource(RoomList, '/hotel/api/v1.0/rooms',
+                     endpoint='rooms')
+    api.add_resource(Room, '/hotel/api/v1.0/rooms/<int:id>',
+                     endpoint='room')
     api.add_resource(UserList, '/hotel/api/v1.0/users',
                      endpoint='users')
     api.add_resource(User, '/hotel/api/v1.0/users/<int:id>',

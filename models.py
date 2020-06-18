@@ -67,7 +67,7 @@ class Hotels(BaseTable, db.Model):
         rooms = db.session.query(func.count(Rooms.type), Rooms.type).\
             group_by(Rooms.type).\
             filter(Rooms.hotel_id == self.id).all()
-        if rooms == []:  # This will be deleted after bad records are deleted
+        if rooms == []:  # Newly created hotels will not have rooms
             return {
                 'total_double_rooms': 0,
                 'total_queen_rooms': 0,
@@ -75,9 +75,9 @@ class Hotels(BaseTable, db.Model):
             }
         else:
             return {
-                'total_double_rooms': rooms[0][0],
+                'total_double_rooms': rooms[2][0],
                 'total_queen_rooms': rooms[1][0],
-                'total_king_rooms': rooms[2][0]
+                'total_king_rooms': rooms[0][0]
             }
 
     @staticmethod
@@ -101,12 +101,8 @@ class Hotels(BaseTable, db.Model):
         hotel_list = []
         for hotel in hotels:
             rooms = hotel.get_room_counts()
-            if rooms == None:  # This will be removed after bad db records removed
-                continue
             hotel = hotel.__dict__  # convert row object to dict
             hotel = {**hotel, **rooms}  # merge dictionaries
-            # TODO: change database schema to include
-            hotel['last_updated_date'] = datetime.now()
             hotel_list.append(hotel)
         return hotel_list
 
@@ -116,8 +112,6 @@ class Hotels(BaseTable, db.Model):
         hotel = Hotels.query.get_or_404(id)
         rooms = hotel.get_room_counts()
         hotel = {**hotel.__dict__, **rooms}  # merge dictionaries
-        # TODO: change database schema to include
-        hotel['last_updated_date'] = datetime.now()
         return hotel
 
 
@@ -130,6 +124,22 @@ class Rooms(BaseTable, db.Model):
 
     def __repr__(self):
         return f'<Hotel_id {self.hotel_id} Room_id {self.id}>'
+    
+    def add_room(self):
+        db.session.add(self)
+        db.session.commit()
+    
+    @staticmethod
+    def get_rooms():
+        rooms = Rooms.query.all()
+        return rooms
+    
+    @staticmethod
+    def delete_room(id):
+        """Delete a hotel room from the database."""
+        room = Rooms.query.get_or_404(id)
+        db.session.delete(room)
+        db.session.commit()
 
 
 class RoomInventory(BaseTable, db.Model):

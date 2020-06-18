@@ -32,7 +32,7 @@ class HotelList(Resource):
         return {'hotels': [marshal(hotel, hotel_fields) for hotel in hotels]}
 
     def post(self):
-        """Add a new reservation to the reservations list."""
+        """Add a new hotel to the hotel list."""
         args = self.reqparse.parse_args()
         hotel = {
             'name': args['name'],
