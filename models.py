@@ -1,7 +1,8 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, null
+from sqlalchemy import func
 from common.utils import daterange
+from config import config
 
 db = SQLAlchemy()
 
@@ -160,16 +161,19 @@ class RoomInventory(BaseTable, db.Model):
     @staticmethod
     def bulk_add_inventory(hotel_id, room_id_array, start_date, end_date):
         """Add hotel room inventory in bulk for n number of months."""
+        created_date= datetime.now()
+        last_modified_date= datetime.now()
+        room_inventory = []
         for date in daterange(start_date,end_date):
             for room_id in room_id_array:
-                room = RoomInventory(created_date=datetime.now(),
-                                    last_modified_date=datetime.now(),
-                                    date=date, 
-                                    hotel_id=hotel_id,
-                                    room_id=room_id,
-                                    reservation_id=null())
-                db.session.add(room)
-        db.session.commit()
-    
+                room = dict(created_date=created_date,
+                            last_modified_date=last_modified_date,
+                            date=date, 
+                            hotel_id=hotel_id,
+                            room_id=room_id,
+                            reservation_id=None)
+                room_inventory.append(room)
+        db.engine.execute(RoomInventory.__table__.insert().values(room_inventory))
+
     #TODO: bulk deletes when a room is deleted
 

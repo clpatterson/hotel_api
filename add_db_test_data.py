@@ -1,12 +1,13 @@
 from api import create_app, db
 app = create_app('development')
 app.app_context().push()
-# db.drop_all()
-# db.create_all()
+db.drop_all()
+db.create_all()
 
 from random import randrange
 from datetime import datetime, date
-from models import Users, Hotels, Rooms, Reservations
+from models import Users, Hotels, Rooms, Reservations, RoomInventory
+from common.utils import months_out
 
 # Add User data
 users = [
@@ -60,17 +61,31 @@ print('Hotels added.')
 # Add hotel room data
 def add_hotel_rooms(hotel_id):
     """Add a random number of rooms for each room type."""
+    rooms = []
     for double in range(randrange(1,20)):
-        db.session.add(Rooms(type='double', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now()))
+        room = Rooms(type='double', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now())
+        rooms.append(room)
     for queen in range(randrange(1,20)):
-        db.session.add(Rooms(type='queen', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now()))
+        room = Rooms(type='queen', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now())
+        rooms.append(room)
     for king in range(randrange(1,20)):
-        db.session.add(Rooms(type='king', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now()))
+        room = Rooms(type='king', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now())
+        rooms.append(room)
+    db.session.add_all(rooms)
+    db.session.flush()
     db.session.commit()
-    return f'Rooms for hotel id {hotel_id} created.'
+    room_id_array = [room.id for room in rooms]
+    return room_id_array
 
 for hotel_id in hotel_ids:
-    add_hotel_rooms(hotel_id)
+    rooms = add_hotel_rooms(hotel_id)
+    print(f"rooms added for hotel {hotel_id}")
+    RoomInventory.bulk_add_inventory(hotel_id=hotel_id, 
+                                     room_id_array=rooms, 
+                                     start_date=date.today(),
+                                     end_date=months_out(date.today(),6))
+    print(f"room inventory added for hotel {hotel_id}")
+    
 print('Hotel rooms added.')
 
 # Add reservation data
