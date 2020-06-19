@@ -1,8 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
 from flask import abort
 from flask_restful import Resource, reqparse, fields, marshal
 from sqlalchemy import func
-from models import db, Rooms
+from models import db, Rooms, RoomInventory
+from common.utils import months_out
 
 
 room_fields = {
@@ -42,6 +44,10 @@ class RoomList(Resource):
         }
         room = Rooms(**room)
         room.add_room()
+        RoomInventory.bulk_add_inventory(hotel_id=room.hotel_id,
+                                         room_id_array=[room.id],
+                                         start_date=date.today(),
+                                         end_date=months_out(date.today(), 6))
         # handle sqlalchemy Integrity error if parent hotel does not exist
         return {'rooms': marshal(room, room_fields)}, 201
 
