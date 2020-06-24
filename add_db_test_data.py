@@ -4,7 +4,7 @@ app.app_context().push()
 db.drop_all()
 db.create_all()
 
-from random import randrange
+from random import randint
 from datetime import datetime, date
 from models import Users, Hotels, Rooms, Reservations, RoomInventory
 from common.utils import months_out
@@ -26,67 +26,46 @@ users = [
 ]
 
 for user in users:
-    db.session.add(Users(**user))
-db.session.commit()
+    user = Users(**user)
+    user.add_user()
 print('Users added.')
 
 # Add hotel data
 hotels = [
     {
+        'created_date': datetime.now(),
+        'last_modified_date': datetime.now(),
         'name': 'The Asteroid',
-         'created_date': datetime.now(),
-         'last_modified_date': datetime.now()
+        'total_double_rooms': 1,
+        'total_queen_rooms': 14,
+        'total_king_rooms': 7
     },
     {
+        'created_date': datetime.now(),
+        'last_modified_date': datetime.now(),
         'name': 'The New Asteroid',
-         'created_date': datetime.now(),
-         'last_modified_date': datetime.now()
+        'total_double_rooms': 14,
+        'total_queen_rooms': 16,
+        'total_king_rooms': 16
     },
     {
+        'created_date': datetime.now(),
+        'last_modified_date': datetime.now(),
         'name': 'The Luxury Asteroid Hotel',
-         'created_date': datetime.now(),
-         'last_modified_date': datetime.now()
+        'total_double_rooms': 5,
+        'total_queen_rooms': 14,
+        'total_king_rooms': 11
     }
 ]
 
-hotel_ids = []
 for hotel in hotels:
-    hotel = Hotels(**hotel)
-    db.session.add(hotel)
-    db.session.flush()
-    hotel_ids.append(hotel.__dict__['id'])
-db.session.commit()
+    new_hotel = Hotels(created_date=hotel['created_date'],
+                   last_modified_date=hotel['last_modified_date'],
+                   name=hotel['name'])
+    new_hotel.add_hotel(total_double_rooms=hotel['total_double_rooms'],
+                    total_queen_rooms=hotel['total_queen_rooms'],
+                    total_king_rooms=hotel['total_king_rooms'])
 print('Hotels added.')
-
-# Add hotel room data
-def add_hotel_rooms(hotel_id):
-    """Add a random number of rooms for each room type."""
-    rooms = []
-    for double in range(randrange(1,20)):
-        room = Rooms(type='double', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now())
-        rooms.append(room)
-    for queen in range(randrange(1,20)):
-        room = Rooms(type='queen', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now())
-        rooms.append(room)
-    for king in range(randrange(1,20)):
-        room = Rooms(type='king', hotel_id=hotel_id, created_date=datetime.now(), last_modified_date=datetime.now())
-        rooms.append(room)
-    db.session.add_all(rooms)
-    db.session.flush()
-    db.session.commit()
-    room_id_array = [room.id for room in rooms]
-    return room_id_array
-
-for hotel_id in hotel_ids:
-    rooms = add_hotel_rooms(hotel_id)
-    print(f"rooms added for hotel {hotel_id}")
-    RoomInventory.bulk_add_inventory(hotel_id=hotel_id, 
-                                     room_id_array=rooms, 
-                                     start_date=date.today(),
-                                     end_date=months_out(date.today(),6))
-    print(f"room inventory added for hotel {hotel_id}")
-    
-print('Hotel rooms added.')
 
 # Add reservation data
 reservations = [
@@ -129,4 +108,3 @@ for reservation in reservations:
     db.session.add(Reservations(**reservation))
 db.session.commit()
 print('Reservations added.')
-# TODO: Generate room inventory for 6 months out

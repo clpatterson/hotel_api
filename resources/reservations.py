@@ -3,45 +3,6 @@ from flask import abort, request
 from flask_restful import Resource, reqparse, fields, marshal
 from models import db, Reservations
 
-# TODO: create a postgres database and store these there
-reservations = [
-    {
-    'id': 1,
-    'user_id': 1,
-    'checkin_date': u'2020-05-01',
-    'checkout_date': u'2020-05-03',
-    'guest_full_name': u'Roger Briggs',
-    'hotel_id': 1,
-    'created_date': u'2020-05-01T14:09:13.702495',
-    'last_updated_date': u'2020-05-01T14:09:13.702495',
-    'is_cancelled': False,
-    'is_completed': True
-    },
-    {
-    'id': 2,
-    'user_id': 1,
-    'checkin_date': u'2020-05-03',
-    'checkout_date': u'2020-05-04',
-    'guest_full_name': u'Miguel Grinberg',
-    'hotel_id': 1,
-    'created_date': u'2020-05-01T14:09:13.702495',
-    'last_updated_date': u'2020-05-01T14:09:13.702495',
-    'is_cancelled': False,
-    'is_completed': True
-    },
-    {
-    'id': 3,
-    'user_id': 1,
-    'checkin_date': u'2020-05-03',
-    'checkout_date': u'2020-05-04',
-    'guest_full_name': u'Oprah Winfrey',
-    'hotel_id': 1,
-    'created_date': u'2020-05-01T14:09:13.702495',
-    'last_updated_date': u'2020-05-01T14:09:13.702495',
-    'is_cancelled': False,
-    'is_completed': True
-    }
-]
 
 # for creating public / more manage-able urls
 reservation_fields = {
