@@ -71,9 +71,10 @@ print('Hotels added.')
 reservations = [
     {
     'user_id': 1,
-    'checkin_date': date.fromisoformat('2020-05-01'),
-    'checkout_date': date.fromisoformat('2020-05-05'),
+    'checkin_date': date.fromisoformat('2020-09-01'),
+    'checkout_date': date.fromisoformat('2020-09-05'),
     'guest_full_name': u'Roger Briggs',
+    'desired_room_type': 'double',
     'hotel_id': 2,
     'created_date': datetime.now(),
     'last_modified_date': datetime.now(),
@@ -82,9 +83,10 @@ reservations = [
     },
     {
     'user_id': 1,
-    'checkin_date': date.fromisoformat('2020-05-02'),
-    'checkout_date': date.fromisoformat('2020-05-07'),
+    'checkin_date': date.fromisoformat('2020-09-02'),
+    'checkout_date': date.fromisoformat('2020-09-07'),
     'guest_full_name': u'Miguel Grinberg',
+    'desired_room_type': 'queen',
     'hotel_id': 2,
     'created_date': datetime.now(),
     'last_modified_date': datetime.now(),
@@ -93,9 +95,10 @@ reservations = [
     },
     {
     'user_id': 1,
-    'checkin_date': date.fromisoformat('2020-05-03'),
-    'checkout_date': date.fromisoformat('2020-05-08'),
+    'checkin_date': date.fromisoformat('2020-09-03'),
+    'checkout_date': date.fromisoformat('2020-09-08'),
     'guest_full_name': u'Oprah Winfrey',
+    'desired_room_type': 'king',
     'hotel_id': 2,
     'created_date': datetime.now(),
     'last_modified_date': datetime.now(),

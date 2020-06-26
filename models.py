@@ -34,6 +34,7 @@ class Reservations(BaseTable, db.Model):
     checkin_date = db.Column(db.DateTime, nullable=False)
     checkout_date = db.Column(db.DateTime, nullable=False)
     guest_full_name = db.Column(db.String, nullable=False)
+    desired_room_type = db.Column(db.String, nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey(
         'hotels.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -44,8 +45,85 @@ class Reservations(BaseTable, db.Model):
         return f'<Reservation_id {self.id}>'
 
     def add_reservation(self):
+        available = RoomInventory.check_available(hotel_id=self.hotel_id,
+                                                  room_type=self.desired_room_type,
+                                                  checkin_date=self.checkin_date,
+                                                  checkout_date=self.checkout_date)
+        if available == True:
+            RoomInventory.update_inventory(hotel_id=self.hotel_id,
+                                           room_type=self.desired_room_type,
+                                           checkin_date=self.checkin_date,
+                                           checkout_date=self.checkout_date,
+                                           flag='reserve')
         db.session.add(self)
         db.session.commit()
+
+    @staticmethod
+    def get_reservation(id):
+        reservation = Reservations.query.get_or_404(id)
+        reservation_fields = row2dict(reservation)
+        return {'fields': reservation_fields, 'objects': reservation}
+
+    @staticmethod
+    def get_reservations():
+        reservations = Reservations.query.all()
+        reservations_fields = [row2dict(res) for res in reservations]
+        return {'fields': reservations_fields, 'objects': reservations}
+
+    @staticmethod
+    def update(id, args):
+        reservation = Reservations.get_reservation(id)
+        diff = [k for k in args if args[k] != reservation['fields'][k]]
+        print(diff)
+        if len(diff) == 0:
+            print("done")
+            return reservation
+        else:
+            print("in loop")
+            if 'user_id' in diff:
+                # TODO: Throw Error: can't change user_id on res (cancel > make new res)
+                print('user_id')
+                return reservation
+            if 'hotel_id' in diff:
+                # TODO: Throw Error: can't change hotel_id (cancel > make new res)
+                print('hotel_id')
+                return reservation
+            if 'full_guest_name' in diff:
+                print("guest name")
+                reservation['objects'].full_guest_name = args['full_guest_name']
+                reservation['objects'].last_modified_date = datetime.now()
+            if bool(set(['checkin_date', 'checkout_date', 'desired_room_type']).intersection(diff)):
+                print("new res details")
+                available = RoomInventory.check_available(hotel_id=args['hotel_id'],
+                                                            room_type=args['desired_room_type'],
+                                                            checkin_date=args['checkin_date'],
+                                                            checkout_date=args['checkout_date'])
+                if available == True:
+                    print("true")
+                    RoomInventory.update_inventory(hotel_id=args['hotel_id'],
+                                                    room_type=args['desired_room_type'],
+                                                    checkin_date=args['checkin_date'],
+                                                    checkout_date=args['checkout_date'],
+                                                    flag='reserve')
+                    reservation['objects'].last_modified_date = datetime.now()
+                    db.session.commit()
+                else:
+                    return # TODO: add error handling to say change not available
+        return reservation
+    
+    @staticmethod
+    def delete(id):
+        reservation = Reservations.get_or_404(id)
+        reservation.is_cancelled = True
+        reservation.last_modified_date = datetime.now()
+        db.session.commit()
+        RoomInventory.update_inventory(hotel_id=id,
+                                       room_type=reservation.desired_room_type,
+                                       checkin_date=reservation.checkin_date,
+                                       checkout_date=reservation.checkout_date,
+                                       flag='free')
+        return reservation
+
 
 
 class Hotels(BaseTable, db.Model):
@@ -55,7 +133,7 @@ class Hotels(BaseTable, db.Model):
     rooms = db.relationship('Rooms', backref='hotels',
                             lazy=True, cascade='all, delete-orphan')
     room_inventory = db.relationship('RoomInventory', backref='room_inventory',
-                            lazy=True, cascade='all, delete-orphan')
+                                     lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Hotel {self.name}>'
@@ -114,7 +192,7 @@ class Hotels(BaseTable, db.Model):
                     room_diff = args['total_double_rooms'] - \
                         hotel['fields']['total_double_rooms']
                     if room_diff < 0:
-                        continue  # Issue error: hotels cannot shrink in size
+                        continue  # Throw error: hotels cannot shrink in size
                     else:
                         new_rooms = [Rooms(hotel_id=id,
                                            created_date=datetime.now(),
@@ -126,7 +204,7 @@ class Hotels(BaseTable, db.Model):
                     room_diff = args['total_queen_rooms'] - \
                         hotel['fields']['total_queen_rooms']
                     if room_diff < 0:
-                        continue  # Issue error: hotels cannot shrink in size
+                        continue  # Throw error: hotels cannot shrink in size
                     else:
                         new_rooms = [Rooms(hotel_id=id,
                                            created_date=datetime.now(),
@@ -138,7 +216,7 @@ class Hotels(BaseTable, db.Model):
                     room_diff = args['total_king_rooms'] - \
                         hotel['fields']['total_king_rooms']
                     if room_diff < 0:
-                        continue  # Issue error: hotels cannot shrink in size
+                        continue  # Throw error: hotels cannot shrink in size
                     else:
                         new_rooms = [Rooms(hotel_id=id,
                                            created_date=datetime.now(),
@@ -258,7 +336,7 @@ class RoomInventory(BaseTable, db.Model):
 
     @staticmethod
     def bulk_update_inventory(hotel_id):
-        """Update the max capacity for given rooms types when it changes."""
+        """Update the max capacity for given room types when hotel changes."""
         hotel = Hotels.get_hotel(hotel_id)
         hotel = hotel['fields']
         room_types = {'double': hotel['total_double_rooms'],
@@ -267,15 +345,53 @@ class RoomInventory(BaseTable, db.Model):
         last_modified_date = datetime.now()
         for k, v in room_types.items():
             table = RoomInventory.__table__
-            db.engine.execute(table.update().\
-                              where(and_(table.columns.hotel_id==hotel_id, 
-                                         table.columns.room_type==k)).\
-                              values(max_rooms_available=v, last_modified_date=last_modified_date))
+            stmt = table.update().\
+                         where(and_(table.columns.hotel_id == hotel_id,
+                                    table.columns.room_type == k)).\
+                         values(max_rooms_available=v, 
+                                last_modified_date=last_modified_date)
+            db.engine.execute(stmt)
 
     @staticmethod
     def bulk_delete_inventory(hotel_id):
         """Delete all inventory for a given hotel."""
         table = RoomInventory.__table__
-        db.engine.execute(table.delete().where(table.columns.hotel_id==hotel_id))
+        stmt = table.delete().where(table.columns.hotel_id == hotel_id)
+        db.engine.execute(stmt)
 
     # TODO: update_inventory (when a reservation is made / altered / cancelled)
+
+    @staticmethod
+    def check_available(hotel_id, room_type, checkin_date, checkout_date):
+        """Check that inventory is available for given data range and room type."""
+        dates = db.session.query(RoomInventory.date, 
+                                 RoomInventory.max_rooms_available - RoomInventory.rooms_reserved).\
+                            filter(RoomInventory.hotel_id == hotel_id,
+                                   RoomInventory.room_type == room_type,
+                                   RoomInventory.date.between(checkin_date, 
+                                                         checkin_date)).all()
+        available = all([date[1] > 0 for date in dates]) # must have rooms on all dates
+        # TODO: if this date range does not work, provide helpful error info
+        return available
+    
+    @staticmethod
+    def update_inventory(hotel_id, room_type, checkin_date, checkout_date, flag):
+        """Reserve or free room inventory for a single reservation."""
+        dates = db.session.query(RoomInventory).\
+                            filter(RoomInventory.hotel_id == hotel_id,
+                                   RoomInventory.room_type == room_type,
+                                   RoomInventory.date.between(checkin_date, 
+                                                         checkin_date)).\
+                               all()
+        for date in dates:
+            if flag == 'reserve':
+                date.rooms_reserved += 1
+            else:
+                date.rooms_reserved -= 1
+        db.session.commit()
+        return
+        # TODO: add error handling and rollback if something happens
+
+                    
+        
+            
