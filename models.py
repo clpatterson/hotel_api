@@ -110,7 +110,7 @@ class Reservations(BaseTable, db.Model):
                 else:
                     return # TODO: add error handling to say change not available
         return reservation
-    
+
     @staticmethod
     def delete(id):
         reservation = Reservations.get_or_404(id)
