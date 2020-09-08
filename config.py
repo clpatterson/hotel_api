@@ -3,7 +3,10 @@ class Config(object):
 
 
 class DevelopmentConfig(Config):
+    ENV = 'development'
     DEBUG = True
+    HOST = '0.0.0.0'
+    PORT = 5000
     # TODO: Store this as env variable
     SQLALCHEMY_DATABASE_URI = 'postgresql://admin:docker@34.68.188.97:5432/hotel_api'
 

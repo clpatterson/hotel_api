@@ -8,6 +8,7 @@ from models import db
 def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])  # load config from file
+    print(app.config)
     config[config_name].init_app(app)
     # Configure and instantiate the database engine
     db.init_app(app)
@@ -35,4 +36,4 @@ def create_app(config_name):
 
 if __name__ == '__main__':
     app = create_app('development')
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
