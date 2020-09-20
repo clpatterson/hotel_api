@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import abort
 from flask_restful import Resource, reqparse, fields, marshal
-from models import db, Users
+from hotel_api.models import db, Users
 
 
 user_fields = {

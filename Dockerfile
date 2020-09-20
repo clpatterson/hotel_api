@@ -1,12 +1,13 @@
-# Use the slimmer version of python 3.7
-FROM python:3.7
+FROM python:3.7.5-slim-buster
 
-COPY . /hotel_api
+ENV INSTALL_PATH /hotel_api
+RUN mkdir -p $INSTALL_PATH
 
-WORKDIR /hotel_api
+WORKDIR $INSTALL_PATH
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 
-ENTRYPOINT ["python"]
+COPY . .
 
-CMD ["api.py"]
+CMD gunicorn -b 0.0.0.0:8000 --access-logfile - "hotel_api.app:create_app()"

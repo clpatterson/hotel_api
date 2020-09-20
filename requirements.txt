@@ -6,6 +6,7 @@ ephem==3.7.7.0
 Flask==1.1.2
 Flask-RESTful==0.3.8
 Flask-SQLAlchemy==2.4.3
+gunicorn==20.0.4
 isort==4.3.21
 itsdangerous==1.1.0
 Jinja2==2.11.2

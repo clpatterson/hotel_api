@@ -1,11 +1,8 @@
 from datetime import datetime, date
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from sqlalchemy.sql import and_
-from common.utils import daterange, months_out, row2dict
-from config import config
-
-db = SQLAlchemy()
+from hotel_api.common.utils import daterange, months_out, row2dict
+from hotel_api.extensions import db
 
 
 class BaseTable(object):

@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import abort, request
 from flask_restful import Resource, reqparse, fields, marshal
-from models import db, Reservations
+from hotel_api.models import db, Reservations
 
 
 # for creating public / more manage-able urls

@@ -1,5 +1,9 @@
-# Charlie's environment
+# development environment
 venv
 __pycache__/
 .env
 .vscode
+
+# prod setting & secrets
+instance/settings.py
+
