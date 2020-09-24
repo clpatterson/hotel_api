@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import abort, request
 from flask_restful import Resource, reqparse, fields, marshal
-from models import db, Reservations
+from hotel_api.models import db, Reservations
 
 
 # for creating public / more manage-able urls
@@ -41,8 +41,9 @@ class ReservationList(Resource):
     
     def get(self):
         """List all reservations."""
-        reservations = Reservations.get_reservations()
-        return { 'reservations': [marshal(res, reservation_fields) for res in reservations['fields']] }
+        # reservations = Reservations.get_reservations()
+        # return { 'reservations': [marshal(res, reservation_fields) for res in reservations['fields']] }
+        return {"hello":"world"}
     
     def post(self):
         """Add a new reservation to the reservations list."""
