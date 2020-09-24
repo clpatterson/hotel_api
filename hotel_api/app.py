@@ -16,7 +16,6 @@ def create_app(settings_override=None):
 
     if settings_override:
         app.config.update(settings_override)
-    extensions(app)
 
     from hotel_api.resources.reservations import ReservationList, Reservation
     from hotel_api.resources.hotels import HotelList, Hotel
@@ -35,6 +34,9 @@ def create_app(settings_override=None):
                      endpoint='users')
     api.add_resource(User, '/hotel/api/v1.0/users/<int:id>',
                      endpoint='user')
+    
+    extensions(app) # initialize extensions after adding routes
+
     return app
 
 

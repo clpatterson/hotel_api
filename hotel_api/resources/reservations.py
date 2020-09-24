@@ -41,8 +41,9 @@ class ReservationList(Resource):
     
     def get(self):
         """List all reservations."""
-        reservations = Reservations.get_reservations()
-        return { 'reservations': [marshal(res, reservation_fields) for res in reservations['fields']] }
+        # reservations = Reservations.get_reservations()
+        # return { 'reservations': [marshal(res, reservation_fields) for res in reservations['fields']] }
+        return {"hello":"world"}
     
     def post(self):
         """Add a new reservation to the reservations list."""

@@ -1,9 +1,11 @@
-# development
-ENV = 'development'
+# Flask 
 DEBUG = True
-HOST = '0.0.0.0'
-PORT = 8000
 
-# database
+SERVER_NAME = 'localhost:8000'
+SECRET_KEY = 'insecurekeyfordev'
+
+# SQLAlchemy
+db_uri = 'postgresql://hotel_api:devpassword@postgres:5432/hotel_api'
+SQLALCHEMY_DATABASE_URI = db_uri
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-SQLALCHEMY_DATABASE_URI = 'your_database_credentials'
+

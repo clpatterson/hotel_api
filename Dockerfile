@@ -1,5 +1,8 @@
 FROM python:3.7.5-slim-buster
 
+RUN apt-get update && apt-get install -qq -y \
+  build-essential libpq-dev --no-install-recommends
+
 ENV INSTALL_PATH /hotel_api
 RUN mkdir -p $INSTALL_PATH
 
