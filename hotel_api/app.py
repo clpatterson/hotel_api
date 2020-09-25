@@ -35,10 +35,9 @@ def create_app(settings_override=None):
     api.add_resource(User, '/hotel/api/v1.0/users/<int:id>',
                      endpoint='user')
     
-    extensions(app) # initialize extensions after adding routes
+    extensions(app) # must initialize api after adding routes
 
     return app
-
 
 def extensions(app):
     """
