@@ -1,7 +1,7 @@
 from datetime import datetime, date
 from flask_restful import Resource, reqparse, fields, marshal
 from hotel_api.models import db, Hotels, Rooms, RoomInventory
-from hotel_api.common.utils import months_out
+from lib.util_datetime import months_out
 
 
 hotel_fields = {

@@ -1,29 +1,14 @@
 from datetime import datetime, date
 from sqlalchemy import func
 from sqlalchemy.sql import and_
-from hotel_api.common.utils import daterange, months_out, row2dict
+from lib.util_datetime import daterange, months_out
+from lib.util_sqlalchemy import row2dict
 from hotel_api.extensions import db
 
 
 class BaseTable(object):
     created_date = db.Column(db.DateTime, nullable=False)
     last_modified_date = db.Column(db.DateTime, nullable=False)
-
-
-class Users(BaseTable, db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, unique=True, nullable=False)
-    email = db.Column(db.String, unique=True, nullable=False)
-    reservations = db.relationship('Reservations', backref='users', lazy=True)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-    def add_user(self):
-        db.session.add(self)
-        db.session.commit()
-
 
 class Reservations(BaseTable, db.Model):
     __tablename__ = 'reservations'
@@ -34,7 +19,6 @@ class Reservations(BaseTable, db.Model):
     desired_room_type = db.Column(db.String, nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey(
         'hotels.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     is_cancelled = db.Column(db.Boolean, nullable=False)
     is_completed = db.Column(db.Boolean, nullable=False)
 
@@ -77,10 +61,6 @@ class Reservations(BaseTable, db.Model):
             return reservation
         else:
             print("in loop")
-            if 'user_id' in diff:
-                # TODO: Throw Error: can't change user_id on res (cancel > make new res)
-                print('user_id')
-                return reservation
             if 'hotel_id' in diff:
                 # TODO: Throw Error: can't change hotel_id (cancel > make new res)
                 print('hotel_id')
@@ -127,6 +107,11 @@ class Hotels(BaseTable, db.Model):
     __tablename__ = 'hotels'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
+    established_date = db.Column(db.String, nullable=False)
+    proprietor = db.Column(db.String, nullable=True)
+    astrd_diameter = db.Column(db.Float, nullable=False)
+    astrd_surface_composition = db.Column(db.String, nullable=True)
+    ephem_data = db.Column(db.String, nullable=False)
     rooms = db.relationship('Rooms', backref='hotels',
                             lazy=True, cascade='all, delete-orphan')
     room_inventory = db.relationship('RoomInventory', backref='room_inventory',

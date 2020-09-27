@@ -1,0 +1,1 @@
+row2dict = lambda row: {c.name: getattr(row, c.name) for c in row.__table__.columns}

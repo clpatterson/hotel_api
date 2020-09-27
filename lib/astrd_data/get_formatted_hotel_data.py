@@ -48,14 +48,14 @@ def insert_jpl_data():
         
         for i in data['phys_par']:
             if i['name'] == "diameter":
-                diameter = i['value']
+                diameter = float(i['value'])
             elif i['name'] == "spec_T":
                 if len(i['value']) > 1: # Some astroids are assigned multiple categories
                     i['value'] = i['value'][0] # Use first categorization
                 surface_composition = spectral_types.get(i['value'])
         # Insert data
         astrd_dict[key].update({"proprietor": proprietor, 
-                                    "established": established,
+                                    "established_date": established,
                                     "astrd_diameter": diameter, 
                                     "astrd_surface_composition": surface_composition
                                 })
