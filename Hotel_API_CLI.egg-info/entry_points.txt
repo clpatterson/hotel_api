@@ -1,0 +1,4 @@
+
+        [console_scripts]
+        hotel_api=cli.cli:cli
+    

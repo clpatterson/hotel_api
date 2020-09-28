@@ -32,5 +32,3 @@ def months_out(start_date, months):
 
 # # Test months_out()
 # print(months_out(date.today(), 8))
-
-row2dict = lambda row: {c.name: getattr(row, c.name) for c in row.__table__.columns}

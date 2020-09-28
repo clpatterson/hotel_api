@@ -6,7 +6,6 @@ from hotel_api.models import db, Reservations
 
 # for creating public / more manage-able urls
 reservation_fields = {
-    'user_id': fields.Integer,
     'checkin_date': fields.String,
     'checkout_date': fields.String,
     'guest_full_name': fields.String,
@@ -21,8 +20,6 @@ reservation_fields = {
 
 # Argument parser for both ReservationList and Reservations
 reqparse = reqparse.RequestParser() # these lines are for input validation
-reqparse.add_argument('user_id', type = int, required = True,
-    help = "No user id provided.", location = 'json')
 reqparse.add_argument('checkin_date', type = str, required = True,
     help = "No checkin date provided.", location = 'json')
 reqparse.add_argument('checkout_date', type = str, required = True,
@@ -41,15 +38,13 @@ class ReservationList(Resource):
     
     def get(self):
         """List all reservations."""
-        # reservations = Reservations.get_reservations()
-        # return { 'reservations': [marshal(res, reservation_fields) for res in reservations['fields']] }
-        return {"hello":"world"}
+        reservations = Reservations.get_reservations()
+        return { 'reservations': [marshal(res, reservation_fields) for res in reservations['fields']] }
     
     def post(self):
         """Add a new reservation to the reservations list."""
         args = self.reqparse.parse_args()
         reservation = {
-                        'user_id': args['user_id'],
                         'checkin_date': args['checkin_date'],
                         'checkout_date': args['checkout_date'],
                         'guest_full_name': args['guest_full_name'],

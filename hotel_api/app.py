@@ -19,7 +19,6 @@ def create_app(settings_override=None):
 
     from hotel_api.resources.reservations import ReservationList, Reservation
     from hotel_api.resources.hotels import HotelList, Hotel
-    from hotel_api.resources.users import UserList, User
 
     # Register the routes for resources available through the api
     api.add_resource(ReservationList, '/hotel/api/v1.0/reservations',
@@ -30,15 +29,10 @@ def create_app(settings_override=None):
                      endpoint='hotels')
     api.add_resource(Hotel, '/hotel/api/v1.0/hotels/<int:id>',
                      endpoint='hotel')
-    api.add_resource(UserList, '/hotel/api/v1.0/users',
-                     endpoint='users')
-    api.add_resource(User, '/hotel/api/v1.0/users/<int:id>',
-                     endpoint='user')
     
-    extensions(app) # initialize extensions after adding routes
+    extensions(app) # must initialize api after adding routes
 
     return app
-
 
 def extensions(app):
     """
