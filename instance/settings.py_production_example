@@ -1,6 +1,6 @@
 DEBUG = False
 
-SERVER_NAME = 'nickjanetakis.com'
+SERVER_NAME = 'your_domain_name.com'
 SECRET_KEY = 'generateastrong128chartoken'
 
 # SQLAlchemy

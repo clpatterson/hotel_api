@@ -90,7 +90,7 @@ class Reservations(BaseTable, db.Model):
 
     @staticmethod
     def delete(id):
-        reservation = Reservations.get_or_404(id)
+        reservation = Reservations.query.get_or_404(id)
         reservation.is_cancelled = True
         reservation.last_modified_date = datetime.now()
         db.session.commit()
