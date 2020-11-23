@@ -11,28 +11,30 @@ def create_app(settings_override=None):
     """
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config.from_object('config.settings')
-    app.config.from_pyfile('settings.py', silent=True)
+    app.config.from_object("config.settings")
+    app.config.from_pyfile("settings.py", silent=True)
 
     if settings_override:
         app.config.update(settings_override)
 
     from hotel_api.resources.reservations import ReservationList, Reservation
-    from hotel_api.resources.hotels import HotelList, Hotel
+    from hotel_api.resources.hotels.hotels import HotelList, Hotel
+    from hotel_api.resources.hotels.availabilities import Availabilities
 
     # Register the routes for resources available through the api
-    api.add_resource(ReservationList, '/hotel/api/v1.0/reservations',
-                     endpoint='reservations')
-    api.add_resource(Reservation, '/hotel/api/v1.0/reservations/<int:id>',
-                     endpoint='reservation')
-    api.add_resource(HotelList, '/hotel/api/v1.0/hotels',
-                     endpoint='hotels')
-    api.add_resource(Hotel, '/hotel/api/v1.0/hotels/<int:id>',
-                     endpoint='hotel')
-    
-    extensions(app) # must initialize api after adding routes
+    base = "/hotel/api/v0.1/"
+    api.add_resource(ReservationList, f"{base}reservations", endpoint="reservations")
+    api.add_resource(
+        Reservation, f"{base}reservations/<int:id>", endpoint="reservation"
+    )
+    api.add_resource(HotelList, f"{base}hotels", endpoint="hotels")
+    api.add_resource(Hotel, f"{base}hotels/<int:id>", endpoint="hotel")
+    api.add_resource(Availabilities, f"{base}availabilities", endpoint="availabilities")
+
+    extensions(app)  # must initialize api after adding routes
 
     return app
+
 
 def extensions(app):
     """
