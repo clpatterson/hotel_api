@@ -19,6 +19,3 @@ requests==2.24.0
 
 # Testing
 pytest==6.1.2
-
-# API documentation
-connexion==2.7.0

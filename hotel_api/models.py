@@ -25,6 +25,12 @@ class Reservations(BaseTable, db.Model):
     def __repr__(self):
         return f"<Reservation_id {self.id}>"
 
+    def serialize(self):
+        """
+        Serialize sqlalchemy row object into dictionary.
+        """
+        return row2dict(self)
+
     def add_reservation(self):
         available = RoomInventory.check_available(
             hotel_id=self.hotel_id,
@@ -137,6 +143,12 @@ class Hotels(BaseTable, db.Model):
 
     def __repr__(self):
         return f"<Hotel {self.name}>"
+
+    def serialize(self):
+        """
+        Serialize sqlalchemy row object into dictionary.
+        """
+        return row2dict(self)
 
     def add_hotel(self, total_double_rooms, total_queen_rooms, total_king_rooms):
         """Add a new hotel and its rooms to the database."""
@@ -286,17 +298,7 @@ class Hotels(BaseTable, db.Model):
         """
         Serialize sqlalchemy row object into dictionary.
         """
-        hotel = {
-            "id": self.id,
-            "name": self.name,
-            "established_date": self.established_date,
-            "proprietor": self.proprietor,
-            "astrd_diameter": self.astrd_diameter,
-            "astrd_surface_composition": self.astrd_surface_composition,
-            "ephem_data": self.ephem_data,
-        }
-
-        return hotel
+        return row2dict(self)
 
 
 class Rooms(BaseTable, db.Model):
@@ -307,6 +309,12 @@ class Rooms(BaseTable, db.Model):
 
     def __repr__(self):
         return f"<Hotel_id {self.hotel_id} Room_id {self.id}>"
+
+    def serialize(self):
+        """
+        Serialize sqlalchemy row object into dictionary.
+        """
+        return row2dict(self)
 
     @staticmethod
     def create_rooms(hotel_id, double_rooms, queen_rooms, king_rooms):
@@ -341,6 +349,12 @@ class RoomInventory(BaseTable, db.Model):
 
     def __repr__(self):
         return f"<Date {self.date} Hotel_id {self.hotel_id} Room_type {self.room_type}>"
+
+    def serialize(self):
+        """
+        Serialize sqlalchemy row object into dictionary.
+        """
+        return row2dict(self)
 
     @staticmethod
     def bulk_add_inventory(
