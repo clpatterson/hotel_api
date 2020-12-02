@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta
 from sqlalchemy import text
-from flask_restful import Resource, reqparse, fields, marshal
+from flask_restx import Resource, reqparse, fields, marshal
 from hotel_api.models import db, Hotels, RoomInventory
 
 
@@ -39,11 +39,11 @@ reqparse.add_argument(
 
 
 class Availabilities(Resource):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.reqparse = reqparse
-        super(Availabilities, self).__init__()
+        super(Availabilities, self).__init__(*args, **kwargs)
 
-    def get(self):
+    def get(self, *args):
         """Return list of hotels matching search criteria."""
         args = self.reqparse.parse_args()
         hotel_filters = []

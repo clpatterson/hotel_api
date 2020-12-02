@@ -1,6 +1,8 @@
 import pytest
 
 from config import settings
+from lib.seed_data.seed_data import seed_db
+from hotel_api.extensions import db as _db
 from hotel_api.app import create_app
 
 
@@ -11,11 +13,8 @@ def app():
 
     :return: Flask app
     """
-
-    params = {
-        "DEBUG": False,
-        "TESTING": True,
-    }
+    db_uri = "{0}_test".format(settings.SQLALCHEMY_DATABASE_URI)
+    params = {"DEBUG": False, "TESTING": True, "SQLALCHEMY_DATABASE_URI": db_uri}
 
     _app = create_app(settings_override=params)
 
@@ -37,3 +36,21 @@ def client(app):
     :return: Flask app client
     """
     yield app.test_client()
+
+
+@pytest.fixture(scope="session")
+def db(app):
+    """
+    Setup our database, this only gets executed once per session.
+
+    :param app: Pytest fixture
+    :return: SQLAlchemy database session
+    """
+    print("Database is setup!")
+    _db.drop_all()
+    _db.create_all()
+
+    # Seed database with initial data
+    seed_db(test=True)
+
+    return _db
