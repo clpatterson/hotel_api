@@ -1,5 +1,7 @@
 from datetime import datetime, date
-from flask_restful import Resource, reqparse, fields, marshal
+
+from flask_restx import Resource, reqparse, fields, marshal
+
 from hotel_api.models import db, Hotels
 from lib.util_datetime import months_out
 
@@ -17,7 +19,6 @@ hotel_fields = {
     "total_king_rooms": fields.Integer,
     "uri": fields.Url("hotel"),
 }
-
 
 # Parser for HotelList resources
 reqparse = reqparse.RequestParser()
@@ -83,9 +84,9 @@ reqparse.add_argument(
 
 
 class HotelList(Resource):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.reqparse = reqparse
-        super(HotelList, self).__init__()
+        super(HotelList, self).__init__(*args, **kwargs)
 
     def get(self):
         """List all hotels."""
@@ -95,7 +96,6 @@ class HotelList(Resource):
     def post(self):
         """Add a new hotel to the hotel reservation system."""
         args = self.reqparse.parse_args()
-        # TODO: Handle errors when trying to make same hotel
         hotel = {
             "name": args["name"],
             "ephem_data": args["ephem_data"],
@@ -113,15 +113,14 @@ class HotelList(Resource):
         }
         new_hotel = Hotels(**hotel)
         new_hotel.add_hotel(**hotel_rooms)
-        hotel = dict(new_hotel.__dict__, **hotel_rooms)
-        # TODO: handle errors when hotel already exists (i.e. name is not unique)
-        return {"hotels": marshal(hotel, hotel_fields)}
+        new_hotel = dict(new_hotel.__dict__, **hotel_rooms)
+        return {"hotels": marshal(new_hotel, hotel_fields)}, 201
 
 
 class Hotel(Resource):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.reqparse = reqparse
-        super(Hotel, self).__init__()
+        super(Hotel, self).__init__(*args, **kwargs)
 
     def get(self, id):
         """List specified hotel."""
@@ -130,6 +129,7 @@ class Hotel(Resource):
 
     def put(self, id):
         """Update specified hotel."""
+        self.reqparse.replace_argument("ephem_data", required=False, location="json")
         args = self.reqparse.parse_args()
         hotel = Hotels.update_hotel(id, args)
         return {"hotel": marshal(hotel["fields"], hotel_fields)}

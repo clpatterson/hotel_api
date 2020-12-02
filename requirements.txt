@@ -6,12 +6,13 @@ ephem==3.7.7.0
 
 # Web service
 Flask==1.1.2
-Flask-RESTful==0.3.8
+Flask-restx==0.2.0
 gunicorn==20.0.4
 
 # Database
 Flask-SQLAlchemy==2.4.3
 psycopg2==2.8.6
+sqlalchemy-utils==0.36.08
 
 # Utilities
 python-dateutil==2.8.1

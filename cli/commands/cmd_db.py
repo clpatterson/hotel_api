@@ -1,64 +1,70 @@
-from random import randint
 import click
+
+from sqlalchemy_utils import database_exists, create_database
 
 from hotel_api.app import create_app
 from hotel_api.extensions import db
 from hotel_api.models import Hotels, Reservations
-from lib.seed_data.seed_data import get_hotels, reservations
+from lib.seed_data.seed_data import get_hotels, reservations, seed_db
 
 app = create_app()
 db.app = app
+
 
 @click.group()
 def cli():
     """ Run PostgreSQL related tasks. """
     pass
 
+
 @click.command()
-def init():
+@click.option(
+    "--with-testdb/ --no-with-testdb", default=False, help="Create a test db too?"
+)
+def init(with_testdb):
     """
     Initialize the database.
 
+    :param with_testdb: Create a test database
     :return: None
     """
-
     db.drop_all()
     db.create_all()
 
+    if with_testdb:
+        db_uri = app.config["SQLALCHEMY_DATABASE_URI"]
+        db_uri = f"{db_uri}_test"
+
+        if not database_exists(db_uri):
+            create_database(db_uri)
     return None
+
 
 @click.command()
 def seed():
     """
     Seed the database with inital data.
 
-    :return: 
+    :return:
     """
+    seed_db()
 
-    # Seed Hotels
-    hotels = get_hotels()
-    for hotel in hotels:
-        new_hotel = Hotels(**hotel)
-        new_hotel.add_hotel(total_double_rooms=randint(1,25),
-                        total_queen_rooms=randint(1,25),
-                        total_king_rooms=randint(1,25))
-    
-    # Seed Reservations
-    for reservation in reservations:
-        db.session.add(Reservations(**reservation))
-        db.session.commit()
-    
     return None
 
+
 @click.command()
+@click.option(
+    "--with-testdb/ --no-with-testdb", default=False, help="Create a test db too?"
+)
 @click.pass_context
-def reset(ctx):
+def reset(ctx, with_testdb):
     """
     Init and seed automatically.
 
+    :param with_testdb: Create a test database
     :return: None
     """
-    ctx.invoke(init)
+    ctx.invoke(init, with_testdb=with_testdb)
     ctx.invoke(seed)
 
     return None
