@@ -18,8 +18,12 @@ reqparse = reqparse.RequestParser()
 reqparse.add_argument(
     "name", type=str, required=False, location="args", action="append"
 )
-reqparse.add_argument("checkin", type=str, required=True, location="args")
-reqparse.add_argument("checkout", type=str, required=True, location="args")
+reqparse.add_argument(
+    "checkin", type=lambda s: date.fromisoformat(s), required=True, location="args"
+)
+reqparse.add_argument(
+    "checkout", type=lambda s: date.fromisoformat(s), required=True, location="args"
+)
 reqparse.add_argument(
     "surface_type",
     type=str,
@@ -52,13 +56,10 @@ class Availabilities(Resource):
 
         # Can't use checkout date in inventory table query so convert to
         #  last night of stay
-        checkout_date = datetime.strptime(args["checkout"], "%Y-%m-%d").date()
-        checkin_date = datetime.strptime(args["checkin"], "%Y-%m-%d").date()
-        lastnight_date = checkout_date - timedelta(days=1)
-        lastnight = lastnight_date.strftime("%Y-%m-%d")
+        lastnight = args["checkout"] - timedelta(days=1)
 
         # Get the length of stay in days
-        delta = checkout_date - checkin_date
+        delta = args["checkout"] - checkin
         day_count = delta.days
 
         if len(args) > 2:
@@ -95,8 +96,8 @@ class Availabilities(Resource):
         stmt = text(stmt)
         avail_hotels = db.engine.execute(
             stmt,
-            checkin=checkin,
-            lastnight=lastnight,
+            checkin=checkin.isoformat(),
+            lastnight=lastnight.isoformat(),
             room_types=room_types,
             day_count=day_count,
         ).fetchall()
@@ -105,6 +106,5 @@ class Availabilities(Resource):
         # Get hotels with availabilities
         hotel_filters.append(Hotels.id.in_(avail_hotels))
         hotels = db.session.query(Hotels).filter(*hotel_filters).all()
-        hotels = [hotel.serialize() for hotel in hotels]
 
         return {"hotels": [marshal(hotel, hotel_fields) for hotel in hotels]}

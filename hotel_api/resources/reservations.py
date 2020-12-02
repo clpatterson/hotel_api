@@ -103,5 +103,6 @@ class Reservation(Resource):
 
     def delete(self, id):
         """Delete specified reservation."""
-        Reservations.delete(id)
+        reservation = Reservations.query.get_or_404(id)
+        reservation.delete()
         return {"cancelled": True}

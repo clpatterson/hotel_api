@@ -23,8 +23,8 @@ class TestHotelList(object):
             "astrd_diameter": 85.2,
             "astrd_surface_composition": "carbonaceous",
             "total_double_rooms": 3,
-            "total_queen_rooms": 2,
-            "total_king_rooms": 1,
+            "total_queen_rooms": 3,
+            "total_king_rooms": 3,
         }
 
         response = client.post(url_for("hotels"), json=data)
@@ -44,8 +44,8 @@ class TestHotelList(object):
             "astrd_diameter": 85.2,
             "astrd_surface_composition": "carbonaceous",
             "total_double_rooms": 3,
-            "total_queen_rooms": 2,
-            "total_king_rooms": 1,
+            "total_queen_rooms": 3,
+            "total_king_rooms": 3,
         }
 
         response = client.post(url_for("hotels"), json=data)
@@ -65,8 +65,8 @@ class TestHotelList(object):
             "astrd_diameter": 85.2,
             "astrd_surface_composition": "carbonaceous",
             "total_double_rooms": 3,
-            "total_queen_rooms": 2,
-            "total_king_rooms": 1,
+            "total_queen_rooms": 3,
+            "total_king_rooms": 3,
         }
 
         response = client.post(url_for("hotels"), json=data)
@@ -146,12 +146,12 @@ class TestHotel(object):
 
     def test_hotel_delete_valid_hotel(self, client, db):
         """Hotel endpoint should return 200 and message confirming deletion."""
-        response = client.delete(url_for("hotel", id=1))
+        response = client.delete(url_for("hotel", id=54))
 
         assert response.status_code == 200
 
     def test_hotel_delete_invalid_hotel(self, client, db):
         """Hotel endpoint should return 404."""
-        response = client.delete(url_for("hotel", id=1))
+        response = client.delete(url_for("hotel", id=54))
 
         assert response.status_code == 404

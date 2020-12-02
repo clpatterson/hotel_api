@@ -67,9 +67,9 @@ def seed_db(test=False):
         new_hotel = Hotels(**hotel)
         if test:
             new_hotel.add_hotel(
-                total_double_rooms=randint(1, 3),
-                total_queen_rooms=randint(1, 3),
-                total_king_rooms=randint(1, 3),
+                total_double_rooms=3,
+                total_queen_rooms=3,
+                total_king_rooms=3,
                 inv_months=1,
             )
         else:

@@ -122,20 +122,18 @@ class Reservations(BaseTable, db.Model):
         db.session.commit()
         return None
 
-    @staticmethod
-    def delete(id):
-        reservation = Reservations.query.get_or_404(id)
-        reservation.is_cancelled = True
-        reservation.last_modified_date = datetime.now()
+    def delete(self):
+        self.is_cancelled = True
+        self.last_modified_date = datetime.now()
         db.session.commit()
         RoomInventory.update_inventory(
-            hotel_id=id,
-            room_type=reservation.desired_room_type,
-            checkin_date=reservation.checkin_date,
-            checkout_date=reservation.checkout_date,
+            hotel_id=self.hotel_id,
+            room_type=self.desired_room_type,
+            checkin_date=self.checkin_date,
+            checkout_date=self.checkout_date,
             flag="release",
         )
-        return reservation
+        return None
 
 
 class Hotels(BaseTable, db.Model):
@@ -470,7 +468,7 @@ class RoomInventory(BaseTable, db.Model):
             )
             .all()
         )
-        print(dates)
+
         if dates:
             available = all(
                 [date[1] > 0 for date in dates]

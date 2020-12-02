@@ -68,7 +68,7 @@ class TestReservationList(object):
             "checkout_date": checkout_date,
             "guest_full_name": "Charlie Patterson",
             "desired_room_type": "king",
-            "hotel_id": 1,
+            "hotel_id": 2,
         }
 
         for i in range(4):  # There are max 3 rooms available in all hotels
@@ -121,3 +121,16 @@ class TestReservation(object):
         response = client.put(url_for("reservation", id=4), json=data)
 
         assert response.status_code == 400
+
+    def test_reservation_valid_delete(self, client, db):
+        """Reservation endpoint should return 200 and delete message for valid deletion request."""
+        response = client.delete(url_for("reservation", id=4))
+
+        assert response.status_code == 200
+        assert "cancelled" in response.get_json()
+
+    def test_reservation_invalid_delete(self, client, db):
+        """Reservation endpoint should return 404 for invalid reservation id."""
+        response = client.delete(url_for("reservation", id=3000))
+
+        assert response.status_code == 404
