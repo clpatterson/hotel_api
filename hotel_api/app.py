@@ -17,21 +17,16 @@ def create_app(settings_override=None):
     if settings_override:
         app.config.update(settings_override)
 
-    from hotel_api.resources.reservations import ReservationList, Reservation
-    from hotel_api.resources.hotels.hotels import HotelList, Hotel
-    from hotel_api.resources.hotels.availabilities import Availabilities
+    from hotel_api.resources.reservations import reservations_ns
+    from hotel_api.resources.hotels import hotels_ns
+    from hotel_api.resources.availabilities import availabilities_ns
 
-    # Register the routes for resources available through the api
-    base = "/hotel/api/v0.1/"
-    api.add_resource(ReservationList, f"{base}reservations", endpoint="reservations")
-    api.add_resource(
-        Reservation, f"{base}reservations/<int:id>", endpoint="reservation"
-    )
-    api.add_resource(HotelList, f"{base}hotels", endpoint="hotels")
-    api.add_resource(Hotel, f"{base}hotels/<int:id>", endpoint="hotel")
-    api.add_resource(Availabilities, f"{base}availabilities", endpoint="availabilities")
+    # Register namespaces for resources available through the api
+    api.add_namespace(hotels_ns, path="/hotels")
+    api.add_namespace(availabilities_ns, path="/availabilities")
+    api.add_namespace(reservations_ns, path="/reservations")
 
-    extensions(app)  # must initialize api after adding routes
+    extensions(app)  # must initialize api after adding namespaces
 
     return app
 

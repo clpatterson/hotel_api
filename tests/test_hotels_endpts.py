@@ -30,7 +30,7 @@ class TestHotelList(object):
         response = client.post(url_for("hotels"), json=data)
 
         assert response.status_code == 201
-        assert "name" in response.get_json()["hotels"].keys()
+        assert "name" in response.get_json().keys()
 
     def test_hotellist_create_hotel_duplicate(self, client, db):
         """
@@ -81,7 +81,7 @@ class TestHotel(object):
         response = client.get(url_for("hotel", id=1))
 
         assert response.status_code == 200
-        assert "name" in response.get_json()["hotel"]
+        assert "name" in response.get_json()
 
     def test_hotel_get_invalid_hotel_id(self, client, db):
         """Hotel endpoint should return hotel data for valid id. """
@@ -106,7 +106,7 @@ class TestHotel(object):
         response = client.put(url_for("hotel", id=1), json=data)
 
         assert response.status_code == 200
-        assert response.get_json()["hotel"]["total_double_rooms"] == 10
+        assert response.get_json()["total_double_rooms"] == 10
 
     def test_hotel_invalid_update_lowering_room_count(self, client, db):
         """Hotel endpoint should return 200 and updated hotel data for valid update."""

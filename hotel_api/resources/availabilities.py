@@ -1,17 +1,23 @@
 from datetime import datetime, date, timedelta
+
 from sqlalchemy import text
-from flask_restx import Resource, reqparse, fields, marshal
+from flask_restx import Namespace, Resource, reqparse, fields, marshal
+
 from hotel_api.models import db, Hotels, RoomInventory
 
+availabilities_ns = Namespace("availabilities")
 
-hotel_fields = {
-    "name": fields.String,
-    "established_date": fields.String,
-    "proprietor": fields.String,
-    "astrd_diameter": fields.Float,
-    "astrd_surface_composition": fields.String,
-    "uri": fields.Url("hotel"),
-}
+hotel_fields = availabilities_ns.model(
+    "availabilities",
+    {
+        "name": fields.String(example="1_Ceres"),
+        "established_date": fields.String(example="1801-Jan-01"),
+        "proprietor": fields.String(example="Piazzi, G."),
+        "astrd_diameter": fields.Float(example="939.4"),
+        "astrd_surface_composition": fields.String(example="carbonaceous"),
+        "uri": fields.Url("hotel", example="/hotels/1"),
+    },
+)
 
 # Parse search parameters from url query string
 reqparse = reqparse.RequestParser()
@@ -47,6 +53,8 @@ class Availabilities(Resource):
         self.reqparse = reqparse
         super(Availabilities, self).__init__(*args, **kwargs)
 
+    @availabilities_ns.expect(reqparse)
+    @availabilities_ns.marshal_with(hotel_fields)
     def get(self, *args):
         """Return list of hotels matching search criteria."""
         args = self.reqparse.parse_args()
@@ -107,4 +115,7 @@ class Availabilities(Resource):
         hotel_filters.append(Hotels.id.in_(avail_hotels))
         hotels = db.session.query(Hotels).filter(*hotel_filters).all()
 
-        return {"hotels": [marshal(hotel, hotel_fields) for hotel in hotels]}
+        return hotels
+
+
+availabilities_ns.add_resource(Availabilities, "", endpoint="availabilities")

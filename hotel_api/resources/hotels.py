@@ -1,24 +1,28 @@
 from datetime import datetime, date
 
-from flask_restx import Resource, reqparse, fields, marshal
+from flask_restx import Namespace, Resource, reqparse, fields, marshal
 
 from hotel_api.models import db, Hotels
 from lib.util_datetime import months_out
 
+hotels_ns = Namespace("hotels")
 
-hotel_fields = {
-    "name": fields.String,
-    "established_date": fields.String,
-    "proprietor": fields.String,
-    "astrd_diameter": fields.Float,
-    "astrd_surface_composition": fields.String,
-    "created_date": fields.DateTime,
-    "last_modified_date": fields.DateTime,
-    "total_double_rooms": fields.Integer,
-    "total_queen_rooms": fields.Integer,
-    "total_king_rooms": fields.Integer,
-    "uri": fields.Url("hotel"),
-}
+hotel_fields = hotels_ns.model(
+    "hotels",
+    {
+        "name": fields.String(example="1_Ceres"),
+        "established_date": fields.String(example="1801-Jan-01"),
+        "proprietor": fields.String(example="Piazzi, G."),
+        "astrd_diameter": fields.Float(example="939.4"),
+        "astrd_surface_composition": fields.String(example="carbonaceous"),
+        "created_date": fields.DateTime(example="2020-12-01T01:59:39.297892"),
+        "last_modified_date": fields.DateTime(example="2020-12-01T01:59:39.297904"),
+        "total_double_rooms": fields.Integer(example=6),
+        "total_queen_rooms": fields.Integer(example=4),
+        "total_king_rooms": fields.Integer(example=21),
+        "uri": fields.Url("hotel", example="/hotels/1"),
+    },
+)
 
 # Parser for HotelList resources
 reqparse = reqparse.RequestParser()
@@ -88,13 +92,16 @@ class HotelList(Resource):
         self.reqparse = reqparse
         super(HotelList, self).__init__(*args, **kwargs)
 
+    @hotels_ns.marshal_with(hotel_fields)
     def get(self):
         """List all hotels."""
         hotels = Hotels.get_hotels()
-        return {"hotels": [marshal(hotel, hotel_fields) for hotel in hotels["fields"]]}
+        return hotels["fields"]
 
+    @hotels_ns.expect(reqparse)
+    @hotels_ns.marshal_with(hotel_fields, code=201)
     def post(self):
-        """Add a new hotel to the hotel reservation system."""
+        """Add a new hotel."""
         args = self.reqparse.parse_args()
         hotel = {
             "name": args["name"],
@@ -114,7 +121,7 @@ class HotelList(Resource):
         new_hotel = Hotels(**hotel)
         new_hotel.add_hotel(**hotel_rooms)
         new_hotel = dict(new_hotel.__dict__, **hotel_rooms)
-        return {"hotels": marshal(new_hotel, hotel_fields)}, 201
+        return new_hotel, 201
 
 
 class Hotel(Resource):
@@ -122,19 +129,27 @@ class Hotel(Resource):
         self.reqparse = reqparse
         super(Hotel, self).__init__(*args, **kwargs)
 
+    @hotels_ns.marshal_with(hotel_fields)
     def get(self, id):
         """List specified hotel."""
         hotel = Hotels.get_hotel(id)
-        return {"hotel": marshal(hotel["fields"], hotel_fields)}
+        return hotel["fields"]
 
+    @hotels_ns.expect(reqparse)
+    @hotels_ns.marshal_with(hotel_fields)
     def put(self, id):
         """Update specified hotel."""
         self.reqparse.replace_argument("ephem_data", required=False, location="json")
         args = self.reqparse.parse_args()
         hotel = Hotels.update_hotel(id, args)
-        return {"hotel": marshal(hotel["fields"], hotel_fields)}
+        return hotel["fields"]
 
+    @hotels_ns.response(200, '{"deleted": True}')
     def delete(self, id):
         """Delete specified hotel."""
         Hotels.delete_hotel(id)
         return {"deleted": True}
+
+
+hotels_ns.add_resource(HotelList, "", endpoint="hotels")
+hotels_ns.add_resource(Hotel, "/<int:id>", endpoint="hotel")
