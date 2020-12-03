@@ -72,7 +72,7 @@ class ReservationList(Resource):
     @reservations_ns.response(201, "Created")
     @reservations_ns.marshal_with(reservation_fields)
     def post(self):
-        """Add a new reservation to the reservations list."""
+        """Add a new reservation."""
         args = self.reqparse.parse_args()
         reservation = {
             "checkin_date": args["checkin_date"],

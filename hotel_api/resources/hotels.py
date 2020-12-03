@@ -101,7 +101,7 @@ class HotelList(Resource):
     @hotels_ns.expect(reqparse)
     @hotels_ns.marshal_with(hotel_fields, code=201)
     def post(self):
-        """Add a new hotel to the hotel reservation system."""
+        """Add a new hotel."""
         args = self.reqparse.parse_args()
         hotel = {
             "name": args["name"],
