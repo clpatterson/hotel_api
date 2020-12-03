@@ -1,17 +1,23 @@
 from datetime import datetime, date, timedelta
+
 from sqlalchemy import text
-from flask_restx import Resource, reqparse, fields, marshal
+from flask_restx import Namespace, Resource, reqparse, fields, marshal
+
 from hotel_api.models import db, Hotels, RoomInventory
 
+availabilities_ns = Namespace("Availabilities")
 
-hotel_fields = {
-    "name": fields.String,
-    "established_date": fields.String,
-    "proprietor": fields.String,
-    "astrd_diameter": fields.Float,
-    "astrd_surface_composition": fields.String,
-    "uri": fields.Url("hotel"),
-}
+hotel_fields = availabilities_ns.model(
+    "availabilities",
+    {
+        "name": fields.String,
+        "established_date": fields.String,
+        "proprietor": fields.String,
+        "astrd_diameter": fields.Float,
+        "astrd_surface_composition": fields.String,
+        "uri": fields.Url("hotel"),
+    },
+)
 
 # Parse search parameters from url query string
 reqparse = reqparse.RequestParser()
@@ -108,3 +114,6 @@ class Availabilities(Resource):
         hotels = db.session.query(Hotels).filter(*hotel_filters).all()
 
         return {"hotels": [marshal(hotel, hotel_fields) for hotel in hotels]}
+
+
+availabilities_ns.add_resource(Availabilities, "", endpoint="availabilities")

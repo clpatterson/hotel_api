@@ -1,24 +1,28 @@
 from datetime import datetime, date
 
-from flask_restx import Resource, reqparse, fields, marshal
+from flask_restx import Namespace, Resource, reqparse, fields, marshal
 
 from hotel_api.models import db, Hotels
 from lib.util_datetime import months_out
 
+hotels_ns = Namespace("Hotels")
 
-hotel_fields = {
-    "name": fields.String,
-    "established_date": fields.String,
-    "proprietor": fields.String,
-    "astrd_diameter": fields.Float,
-    "astrd_surface_composition": fields.String,
-    "created_date": fields.DateTime,
-    "last_modified_date": fields.DateTime,
-    "total_double_rooms": fields.Integer,
-    "total_queen_rooms": fields.Integer,
-    "total_king_rooms": fields.Integer,
-    "uri": fields.Url("hotel"),
-}
+hotel_fields = hotels_ns.model(
+    "hotels",
+    {
+        "name": fields.String,
+        "established_date": fields.String,
+        "proprietor": fields.String,
+        "astrd_diameter": fields.Float,
+        "astrd_surface_composition": fields.String,
+        "created_date": fields.DateTime,
+        "last_modified_date": fields.DateTime,
+        "total_double_rooms": fields.Integer,
+        "total_queen_rooms": fields.Integer,
+        "total_king_rooms": fields.Integer,
+        "uri": fields.Url("hotel"),
+    },
+)
 
 # Parser for HotelList resources
 reqparse = reqparse.RequestParser()
@@ -138,3 +142,7 @@ class Hotel(Resource):
         """Delete specified hotel."""
         Hotels.delete_hotel(id)
         return {"deleted": True}
+
+
+hotels_ns.add_resource(HotelList, "", endpoint="hotels")
+hotels_ns.add_resource(Hotel, "/<int:id>", endpoint="hotel")

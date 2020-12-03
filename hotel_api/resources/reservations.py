@@ -1,22 +1,26 @@
 from datetime import datetime, date
 from flask import abort, request
-from flask_restx import Resource, reqparse, fields, marshal
+from flask_restx import Namespace, Resource, reqparse, fields, marshal
 from hotel_api.models import db, Reservations
 
+reservations_ns = Namespace("Reservations")
 
 # for creating public / more manage-able urls
-reservation_fields = {
-    "checkin_date": fields.Date,
-    "checkout_date": fields.Date,
-    "guest_full_name": fields.String,
-    "desired_room_type": fields.String,
-    "hotel_id": fields.Integer,
-    "created_date": fields.DateTime,
-    "last_modified_date": fields.DateTime,
-    "is_cancelled": fields.Boolean,
-    "is_completed": fields.Boolean,
-    "uri": fields.Url("reservation"),
-}
+reservation_fields = reservations_ns.model(
+    "reservations",
+    {
+        "checkin_date": fields.Date,
+        "checkout_date": fields.Date,
+        "guest_full_name": fields.String,
+        "desired_room_type": fields.String,
+        "hotel_id": fields.Integer,
+        "created_date": fields.DateTime,
+        "last_modified_date": fields.DateTime,
+        "is_cancelled": fields.Boolean,
+        "is_completed": fields.Boolean,
+        "uri": fields.Url("reservation"),
+    },
+)
 
 # Argument parser for both ReservationList and Reservations
 reqparse = reqparse.RequestParser()  # these lines are for input validation
@@ -106,3 +110,7 @@ class Reservation(Resource):
         reservation = Reservations.query.get_or_404(id)
         reservation.delete()
         return {"cancelled": True}
+
+
+reservations_ns.add_resource(ReservationList, "", endpoint="reservations")
+reservations_ns.add_resource(Reservation, "/<int:id>", endpoint="reservation")
