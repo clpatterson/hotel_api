@@ -21,7 +21,7 @@ class TestAvailabilities(object):
         json_response = response.get_json()
 
         assert response.status_code == 200
-        assert "name" in json_response["hotels"][0]
+        assert "name" in json_response[0]
 
     def test_availabilities_for_multiple_surface_types(self, client, db):
         """

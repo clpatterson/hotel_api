@@ -14,8 +14,8 @@ class TestReservationList(object):
         response = client.get(url_for("reservations"))
 
         assert response.status_code == 200
-        assert len(response.get_json()["reservations"]) == 3
-        assert "uri" in response.get_json()["reservations"][0]
+        assert len(response.get_json()) == 3
+        assert "uri" in response.get_json()[0]
 
     def test_reservationlist_post_valid_reservation(self, client, db):
         """Reservation list should return 200 and reservation details for vaild reservation."""
@@ -29,8 +29,8 @@ class TestReservationList(object):
         response = client.post(url_for("reservations"), json=data)
 
         assert response.status_code == 201
-        assert response.get_json()["reservations"]["checkin_date"] == checkin_date
-        assert response.get_json()["reservations"]["checkout_date"] == checkout_date
+        assert response.get_json()["checkin_date"] == checkin_date
+        assert response.get_json()["checkout_date"] == checkout_date
 
     def test_reservationlist_post_invalid_reservation_dates(self, client, db):
         """Reservation list should return 400 when dates are unavailable."""
@@ -83,7 +83,7 @@ class TestReservation(object):
         response = client.get(url_for("reservation", id=1))
 
         assert response.status_code == 200
-        assert response.get_json()["reservation"]["guest_full_name"] == "Roger Briggs"
+        assert response.get_json()["guest_full_name"] == "Roger Briggs"
 
     def test_reseration_get_invalid_id(self, client, db):
         """Reservation endpoint should return 404 when supplied invalid reservation id."""
@@ -106,7 +106,7 @@ class TestReservation(object):
         response = client.put(url_for("reservation", id=4), json=data)
 
         assert response.status_code == 200
-        assert response.get_json()["reservation"]["desired_room_type"] == "double"
+        assert response.get_json()["desired_room_type"] == "double"
 
     def test_reservation_invalid_update(self, client, db):
         """Reservation endpoint should return 400 and error message for invalid update."""
