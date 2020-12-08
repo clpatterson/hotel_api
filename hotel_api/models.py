@@ -7,12 +7,88 @@ from sqlalchemy.sql import and_
 
 from lib.util_datetime import daterange, months_out
 from lib.util_sqlalchemy import row2dict
-from hotel_api.extensions import db
+from hotel_api.extensions import db, bcrypt
 
 
 class BaseTable(object):
     created_date = db.Column(db.DateTime, nullable=False)
     last_modified_date = db.Column(db.DateTime, nullable=False)
+
+
+class Users(BaseTable, db.Model):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    user_name = db.Column(db.String(128), nullable=False, unique=True)
+    email = db.Column(db.String(128), nullable=False, unique=True)
+    password = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    is_deactivated = db.Column(db.Boolean, default=False, nullable=False)
+    reservations = db.relationship("Reservations", backref="reservations", lazy=True)
+
+    def __init__(self, user_name="", email="", password=""):
+        self.user_name = user_name.lower()
+        self.email = email.lower()
+        self.password = bcrypt.generate_password_hash(password).decode()
+
+    def __repr__(self):
+        return f"<User_id {self.id}, admin={self.admin}>"
+
+    def add(self, admin=False):
+        """
+        Add new user.
+        """
+        # TODO: How should users who wish to reactivate their profile be handled? Reactivate method?
+        email = Users.query.filter(Users.email == self.email).first()
+        if email:
+            abort(400, "User with this email already exists.")
+
+        user_name = Users.query.filter(Users.user_name == self.user_name).first()
+        if user_name:
+            abort(400, "User with user_name already exists.")
+
+        if admin:
+            self.is_admin = True
+
+        self.created_date = datetime.now()
+        self.last_modified_date = datetime.now()
+        db.session.add(self)
+        db.session.commit()
+
+        return None
+
+    def delete(self):
+        """
+        Deactivate user and cancel all user's outstanding reservations.
+        """
+        self.is_deactivated = True
+
+        for reservation in self.reservations:
+            if not reservation.is_cancelled:
+                reservation.delete()
+
+        self.last_modified_date = datetime.now()
+        db.session.commit()
+
+        return None
+
+    def update(self, args):
+        if args["user_name"]:
+            self.user_name = args["user_name"]
+        if args["email"]:
+            self.email = args["email"]
+
+        self.last_modified_date = datetime.now()
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            if "email_key" in e.orig.args[0]:
+                abort(400, "User with this email already exists. Update failed.")
+            if "user_name_key" in e.orig.args[0]:
+                abort(400, "User with this user_name already exists. Update failed.")
+
+        return None
 
 
 class Reservations(BaseTable, db.Model):
@@ -21,6 +97,7 @@ class Reservations(BaseTable, db.Model):
     checkin_date = db.Column(db.Date, nullable=False)
     checkout_date = db.Column(db.Date, nullable=False)
     guest_full_name = db.Column(db.String, nullable=False)
+    customer_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     desired_room_type = db.Column(db.String, nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey("hotels.id"), nullable=False)
     is_cancelled = db.Column(db.Boolean, nullable=False)
@@ -133,6 +210,7 @@ class Reservations(BaseTable, db.Model):
             checkout_date=self.checkout_date,
             flag="release",
         )
+
         return None
 
 

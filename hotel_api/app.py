@@ -1,5 +1,5 @@
 from flask import Flask
-from hotel_api.extensions import api, db
+from hotel_api.extensions import api, db, bcrypt
 
 
 def create_app(settings_override=None):
@@ -17,11 +17,13 @@ def create_app(settings_override=None):
     if settings_override:
         app.config.update(settings_override)
 
+    from hotel_api.resources.users import users_ns
     from hotel_api.resources.reservations import reservations_ns
     from hotel_api.resources.hotels import hotels_ns
     from hotel_api.resources.availabilities import availabilities_ns
 
     # Register namespaces for resources available through the api
+    api.add_namespace(users_ns, path="/users")
     api.add_namespace(hotels_ns, path="/hotels")
     api.add_namespace(availabilities_ns, path="/availabilities")
     api.add_namespace(reservations_ns, path="/reservations")
@@ -40,5 +42,6 @@ def extensions(app):
     """
     api.init_app(app)
     db.init_app(app)
+    bcrypt.init_app(app)
 
     return None

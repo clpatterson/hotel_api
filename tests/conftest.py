@@ -46,9 +46,9 @@ def db(app):
     :param app: Pytest fixture
     :return: SQLAlchemy database session
     """
-    print("Database is setup!")
     _db.drop_all()
     _db.create_all()
+    print("Database is setup!")
 
     # Seed database with initial data
     seed_db(test=True)
