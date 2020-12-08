@@ -23,6 +23,7 @@ class TestReservationList(object):
             "checkin_date": checkin_date,
             "checkout_date": checkout_date,
             "guest_full_name": "Charlie Patterson",
+            "customer_user_id": 4,
             "desired_room_type": "king",
             "hotel_id": 1,
         }
@@ -38,6 +39,7 @@ class TestReservationList(object):
             "checkin_date": "2020-09-01",
             "checkout_date": "2020-09-05",
             "guest_full_name": "Jim Lately",
+            "customer_user_id": 4,
             "desired_room_type": "double",
             "hotel_id": 1,
         }
@@ -53,6 +55,7 @@ class TestReservationList(object):
             "checkin_date": "2020-09-01",
             "checkout_date": "2020-09-05",
             "guest_full_name": "Jim Lately",
+            "customer_user_id": 4,
             "desired_room_type": "double",
         }
         response = client.post(url_for("reservations"), json=data)
@@ -67,6 +70,7 @@ class TestReservationList(object):
             "checkin_date": checkin_date,
             "checkout_date": checkout_date,
             "guest_full_name": "Charlie Patterson",
+            "customer_user_id": 4,
             "desired_room_type": "king",
             "hotel_id": 2,
         }
@@ -99,6 +103,7 @@ class TestReservation(object):
             "checkin_date": checkin_date,
             "checkout_date": checkout_date,
             "guest_full_name": "Charlie Patterson",
+            "customer_user_id": 4,
             "desired_room_type": "double",
             "hotel_id": 1,
         }  # change room type from king to double
@@ -114,6 +119,7 @@ class TestReservation(object):
             "checkin_date": "2020-09-01",
             "checkout_date": "2020-09-05",
             "guest_full_name": "Charlie Patterson",
+            "customer_user_id": 4,
             "desired_room_type": "double",
             "hotel_id": 1,
         }  # change dates to invalid range

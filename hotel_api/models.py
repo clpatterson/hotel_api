@@ -152,6 +152,12 @@ class Reservations(BaseTable, db.Model):
                     "Cannot alter hotel on reservation.\
                      Cancel and make a new reservation.",
                 )
+            if "customer_user_id" in diff:
+                abort(
+                    400,
+                    "Cannot alter customer on reservation.\
+                     Cancel and make a new reservation.",
+                )
             if "full_guest_name" in diff:
                 print("guest name")
                 self.full_guest_name = args["full_guest_name"]
@@ -190,19 +196,27 @@ class Reservations(BaseTable, db.Model):
                     self.checkout_date = args["checkout_date"]
                     self.desired_room_type = args["desired_room_type"]
                 else:
+                    db.session.rollback()
                     abort(
                         400,
                         "Reservation change failed.\
                         Altered reservation is unavailable.",
                     )
+
         self.last_modified_date = datetime.now()
         db.session.commit()
+
         return None
 
     def delete(self):
+        if self.is_cancelled == True:  # Reservation has already been cancelled.
+            return None
+
         self.is_cancelled = True
         self.last_modified_date = datetime.now()
+
         db.session.commit()
+
         RoomInventory.update_inventory(
             hotel_id=self.hotel_id,
             room_type=self.desired_room_type,

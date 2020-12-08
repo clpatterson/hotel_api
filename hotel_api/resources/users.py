@@ -81,6 +81,7 @@ class User(Resource):
 
         return user
 
+    @users_ns.response(200, '{"deactivated": True}')
     def delete(self, id):
         """
         Deactivate specified user.
@@ -88,7 +89,7 @@ class User(Resource):
         user = Users.query.get_or_404(id)
         user.delete()
 
-        return {"deleted": True}
+        return {"deactivated": True}
 
 
 users_ns.add_resource(UserList, "", endpoint="users")

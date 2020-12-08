@@ -81,13 +81,13 @@ class TestUser(object):
         assert "password" not in response.get_json().keys()
         assert "roger_briggs" in response.get_json()["user_name"]
 
-    def test_get_invalid_user_id(self, client, db):
+    def test_get_user_invalid_user_id(self, client, db):
         """User endpoint should return 404 and not found message for invalid user id. """
         response = client.get(url_for("user", id=3000))
 
         assert response.status_code == 404
 
-    def test_update_valid_params(self, client, db):
+    def test_update_user_valid_params(self, client, db):
         """ User endpoint should return 200 and updated user data after valid update. """
         data = {"user_name": "roger_briggs", "email": "roger.briggs@new_email.com"}
 
@@ -96,7 +96,7 @@ class TestUser(object):
         assert response.status_code == 200
         assert response.get_json()["email"] == "roger.briggs@new_email.com"
 
-    def test_update_missing_user_name_param(self, client, db):
+    def test_update_user_missing_user_name_param(self, client, db):
         """ User endpoint should return 400 when required params are missing. """
         data = {"email": "roger.briggs@new_email.com"}
 
@@ -105,7 +105,7 @@ class TestUser(object):
         assert response.status_code == 400
 
     # TODO: Resolve issue with strict param in model
-    def test_update_invalid_password_param(self, client, db):
+    def test_update_user_invalid_password_param(self, client, db):
         """ User endpoint should return 400 when user attemps to pass password param to update. """
         data = {
             "user_name": "roger_briggs",
@@ -153,7 +153,7 @@ class TestUser(object):
         response = client.delete(url_for("user", id=1))
 
         assert response.status_code == 200
-        assert "deleted" in response.get_json().keys()
+        assert "deactivated" in response.get_json().keys()
 
     def test_delete_invalid_user_id(self, client, db):
         """User endpoint should return 404 and not found message for invalid user id. """
