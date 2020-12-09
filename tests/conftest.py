@@ -1,9 +1,11 @@
 import pytest
 
 from config import settings
+from tests.util import USER_NAME, EMAIL, PASSWORD
 from lib.seed_data.seed_data import seed_db
 from hotel_api.extensions import db as _db
 from hotel_api.app import create_app
+from hotel_api.models import Users
 
 
 @pytest.yield_fixture(scope="session")
@@ -14,7 +16,13 @@ def app():
     :return: Flask app
     """
     db_uri = "{0}_test".format(settings.SQLALCHEMY_DATABASE_URI)
-    params = {"DEBUG": False, "TESTING": True, "SQLALCHEMY_DATABASE_URI": db_uri}
+    params = {
+        "DEBUG": False,
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": db_uri,
+        "TOKEN_EXPIRE_HOURS": 0,
+        "TOKEN_EXPIRE_MINUTES": 0,
+    }
 
     _app = create_app(settings_override=params)
 
@@ -54,3 +62,16 @@ def db(app):
     seed_db(test=True)
 
     return _db
+
+
+@pytest.fixture(scope="session")
+def user(db):
+    """
+    Setup test user, this gets executed once per session.
+    :param db: Pytest db fixture
+    :return: Test user
+    """
+    user = Users(user_name=USER_NAME, email=EMAIL, password=PASSWORD)
+    user.add()
+
+    return user

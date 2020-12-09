@@ -19,8 +19,8 @@ class TestUserList(object):
          for valid new user.
         """
         data = {
-            "user_name": "test_user",
-            "email": "test.user@email.com",
+            "user_name": "another_test_user",
+            "email": "another.test.user@email.com",
             "password": "testpassword",
         }
         response = client.post(url_for("users"), json=data)
@@ -35,8 +35,8 @@ class TestUserList(object):
         for duplicate user.
         """
         data = {
-            "user_name": "test_user",
-            "email": "test.user@email.com",
+            "user_name": "another_test_user",
+            "email": "another.test.user@email.com",
             "password": "testpassword",
         }
         response = client.post(url_for("users"), json=data)
@@ -49,7 +49,7 @@ class TestUserList(object):
         Users endpoint should return 400 and error message for new user missing email.
         """
         data = {
-            "user_name": "test_user",
+            "user_name": "another_test_user",
             "password": "testpassword",
         }
         response = client.post(url_for("users"), json=data)
@@ -63,8 +63,8 @@ class TestUserList(object):
         new user missing password.
         """
         data = {
-            "user_name": "test_user",
-            "email": "test.user@email.com",
+            "user_name": "another_test_user",
+            "email": "another.test.user@email.com",
         }
         response = client.post(url_for("users"), json=data)
 
@@ -148,6 +148,8 @@ class TestUser(object):
             == "User with this user_name already exists. Update failed."
         )
 
+    # TODO: Add tests to confirm all users outstanding reservations are cancelled
+    #  when they're account is deactivated.
     def test_delete_valid_user(self, client, db):
         """User endpoint should return 200 and user data (excluding password) """
         response = client.delete(url_for("user", id=1))

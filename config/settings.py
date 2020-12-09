@@ -8,3 +8,7 @@ SECRET_KEY = "insecurekeyfordev"
 db_uri = "postgresql://hotel_api:devpassword@postgres:5432/hotel_api"
 SQLALCHEMY_DATABASE_URI = db_uri
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# Authentication with JWT
+TOKEN_EXPIRE_HOURS = 0
+TOKEN_EXPIRE_MINUTES = 15

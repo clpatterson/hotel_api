@@ -77,7 +77,6 @@ class User(Resource):
             abort(400, "Cannot update password.")
 
         user.update(body)
-        print(user.password)
 
         return user
 

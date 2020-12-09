@@ -1,6 +1,7 @@
 from datetime import datetime, date, timedelta
 
-from flask import abort
+import jwt
+from flask import current_app, abort
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import and_
@@ -31,13 +32,14 @@ class Users(BaseTable, db.Model):
         self.password = bcrypt.generate_password_hash(password).decode()
 
     def __repr__(self):
-        return f"<User_id {self.id}, admin={self.admin}>"
+        return f"<User_id {self.id}, admin={self.is_admin}>"
 
     def add(self, admin=False):
         """
         Add new user.
         """
         # TODO: How should users who wish to reactivate their profile be handled? Reactivate method?
+        # TODO: Validate user names. Should they have special chars, etc?
         email = Users.query.filter(Users.email == self.email).first()
         if email:
             abort(400, "User with this email already exists.")
@@ -89,6 +91,55 @@ class Users(BaseTable, db.Model):
                 abort(400, "User with this user_name already exists. Update failed.")
 
         return None
+
+    def check_password(self, password):
+        """
+        Check provided user password against stored user password.
+        """
+        return bcrypt.check_password_hash(self.password, password)
+
+    def encode_access_token(self):
+        """Return JWT token with expiration, id, and role for user."""
+        now = datetime.now()
+        token_age_h = current_app.config.get("TOKEN_EXPIRE_HOURS")
+        token_age_m = current_app.config.get("TOKEN_EXPIRE_MINUTES")
+        expire = now + timedelta(hours=token_age_h, minutes=token_age_m)
+
+        if current_app.config["TESTING"]:
+            expire = now + timedelta(seconds=5)
+
+        payload = dict(exp=expire, iat=now, sub=self.id, admin=self.is_admin)
+        key = current_app.config.get("SECRET_KEY")
+
+        return jwt.encode(payload, key, algorithm="HS256")
+
+    @staticmethod
+    def decode_access_token(access_token):
+        if isinstance(access_token, bytes):
+            access_token = access_token.decode("ascii")
+
+        if access_token.startswith("Bearer "):
+            split = access_token.split("Bearer")
+            access_token = split[1].strip()
+
+        try:
+            key = current_app.config.get("SECRET_KEY")
+            payload = jwt.decode(access_token, key, algorithms="HS256")
+
+        except jwt.exceptions.ExpiredSignatureError:
+            abort(401, "Access token expired. Please log in again.")
+
+        except jwt.exceptions.InvalidTokenError:
+            abort(401, "Invalid token. Please log in again")
+
+        user_dict = dict(
+            id=payload["sub"],
+            admin=payload["admin"],
+            token=access_token,
+            expires_at=payload["exp"],
+        )
+
+        return user_dict
 
 
 class Reservations(BaseTable, db.Model):

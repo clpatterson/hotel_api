@@ -130,6 +130,6 @@ def seed_db(test=False, dev=False):
         user["email"] = SEED_ADMIN_EMAIL
 
         user = Users(**user)
-        user.add()
+        user.add(admin=True)
 
     return None
