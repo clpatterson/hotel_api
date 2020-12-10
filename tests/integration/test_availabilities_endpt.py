@@ -14,7 +14,7 @@ class TestAvailabilities(object):
         json response.
         """
         response = client.get(
-            url_for("availabilities")
+            url_for("api.availabilities")
             + f"?checkin={checkin_date}"
             + f"&checkout={checkout_date}"
         )
@@ -29,7 +29,7 @@ class TestAvailabilities(object):
         surface types in query string.
         """
         response = client.get(
-            url_for("availabilities")
+            url_for("api.availabilities")
             + f"?checkin={checkin_date}"
             + f"&checkout={checkout_date}"
             + "&surface_type=silicaceous"
@@ -45,7 +45,7 @@ class TestAvailabilities(object):
         """
 
         response = client.get(
-            url_for("availabilities")
+            url_for("api.availabilities")
             + f"?checkin={checkin_date}"
             + f"&checkout={checkout_date}"
             + "&name=1_Ceres"
@@ -61,7 +61,7 @@ class TestAvailabilities(object):
         """
 
         response = client.get(
-            url_for("availabilities")
+            url_for("api.availabilities")
             + f"?checkin={checkin_date}"
             + f"&checkout={checkout_date}"
             + "&room_type=king"
@@ -77,7 +77,7 @@ class TestAvailabilities(object):
         """
 
         response = client.get(
-            url_for("availabilities")
+            url_for("api.availabilities")
             + f"?checkin={checkin_date}"
             + f"&checkout={checkout_date}"
             + "&room_type=king"
@@ -93,7 +93,7 @@ class TestAvailabilities(object):
         """
 
         response = client.get(
-            url_for("availabilities")
+            url_for("api.availabilities")
             + f"?checkin={checkin_date}"
             + f"&checkout={checkout_date}"
             + "&surface_type=dirty"
@@ -109,7 +109,7 @@ class TestAvailabilities(object):
         """
 
         response = client.get(
-            url_for("availabilities")
+            url_for("api.availabilities")
             + f"?checkin={checkin_date}"
             + "&surface_type=carbonaceous"
         )

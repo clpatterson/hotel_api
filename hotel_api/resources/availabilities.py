@@ -15,7 +15,7 @@ hotel_fields = availabilities_ns.model(
         "proprietor": fields.String(example="Piazzi, G."),
         "astrd_diameter": fields.Float(example="939.4"),
         "astrd_surface_composition": fields.String(example="carbonaceous"),
-        "uri": fields.Url("hotel", example="/hotels/1"),
+        "uri": fields.Url("api.hotel", example="/hotels/1"),
     },
 )
 

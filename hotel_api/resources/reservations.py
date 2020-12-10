@@ -19,7 +19,7 @@ reservation_fields = reservations_ns.model(
         "last_modified_date": fields.DateTime(example="2020-08-01T01:59:39.180988"),
         "is_cancelled": fields.Boolean(example="false"),
         "is_completed": fields.Boolean(example="true"),
-        "uri": fields.Url("reservation", example="/reservations/2"),
+        "uri": fields.Url("api.reservation", example="/reservations/2"),
     },
 )
 

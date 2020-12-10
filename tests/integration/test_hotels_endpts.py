@@ -7,7 +7,7 @@ class TestHotelList(object):
         Hotels endpoint should return a list of all hotels and
         200 status code.
         """
-        response = client.get(url_for("hotels"))
+        response = client.get(url_for("api.hotels"))
 
         assert response.status_code == 200
 
@@ -27,7 +27,7 @@ class TestHotelList(object):
             "total_king_rooms": 3,
         }
 
-        response = client.post(url_for("hotels"), json=data)
+        response = client.post(url_for("api.hotels"), json=data)
 
         assert response.status_code == 201
         assert "name" in response.get_json().keys()
@@ -48,7 +48,7 @@ class TestHotelList(object):
             "total_king_rooms": 3,
         }
 
-        response = client.post(url_for("hotels"), json=data)
+        response = client.post(url_for("api.hotels"), json=data)
 
         assert response.status_code == 400
         assert "Hotel already exists." in response.get_json()["message"]
@@ -69,7 +69,7 @@ class TestHotelList(object):
             "total_king_rooms": 3,
         }
 
-        response = client.post(url_for("hotels"), json=data)
+        response = client.post(url_for("api.hotels"), json=data)
 
         assert response.status_code == 400
         assert "No hotel name provided." in response.get_json()["errors"]["name"]
@@ -78,14 +78,14 @@ class TestHotelList(object):
 class TestHotel(object):
     def test_hotel_get(self, client, db):
         """Hotel endpoint should return hotel data for valid id. """
-        response = client.get(url_for("hotel", id=1))
+        response = client.get(url_for("api.hotel", id=1))
 
         assert response.status_code == 200
         assert "name" in response.get_json()
 
     def test_hotel_get_invalid_hotel_id(self, client, db):
         """Hotel endpoint should return hotel data for valid id. """
-        response = client.get(url_for("hotel", id=3000))
+        response = client.get(url_for("api.hotel", id=3000))
 
         assert response.status_code == 404
 
@@ -103,7 +103,7 @@ class TestHotel(object):
             "total_king_rooms": 10,
         }
 
-        response = client.put(url_for("hotel", id=1), json=data)
+        response = client.put(url_for("api.hotel", id=1), json=data)
 
         assert response.status_code == 200
         assert response.get_json()["total_double_rooms"] == 10
@@ -122,7 +122,7 @@ class TestHotel(object):
             "total_king_rooms": 10,
         }
 
-        response = client.put(url_for("hotel", id=1), json=data)
+        response = client.put(url_for("api.hotel", id=1), json=data)
 
         assert response.status_code == 400
         assert "Hotel room counts cannot shrink." in response.get_json()["message"]
@@ -140,18 +140,18 @@ class TestHotel(object):
             "total_king_rooms": 2,
         }
 
-        response = client.put(url_for("hotel", id=1), json=data)
+        response = client.put(url_for("api.hotel", id=1), json=data)
 
         assert response.status_code == 400
 
     def test_hotel_delete_valid_hotel(self, client, db):
         """Hotel endpoint should return 200 and message confirming deletion."""
-        response = client.delete(url_for("hotel", id=54))
+        response = client.delete(url_for("api.hotel", id=54))
 
         assert response.status_code == 200
 
     def test_hotel_delete_invalid_hotel(self, client, db):
         """Hotel endpoint should return 404."""
-        response = client.delete(url_for("hotel", id=54))
+        response = client.delete(url_for("api.hotel", id=54))
 
         assert response.status_code == 404

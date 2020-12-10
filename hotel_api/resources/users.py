@@ -1,7 +1,7 @@
 from datetime import datetime, date
 
 from flask import request, abort
-from flask_restx import Namespace, Resource, reqparse, fields, marshal
+from flask_restx import Namespace, Resource, fields, marshal
 
 from hotel_api.models import db, Users
 
@@ -16,7 +16,7 @@ user = users_ns.model(
         "is_deactivated": fields.Boolean(example="False"),
         "created_date": fields.DateTime(example="2020-12-01T01:59:39.297904"),
         "last_modified_date": fields.DateTime(example="2020-12-01T01:59:39.297904"),
-        "uri": fields.Url("user"),
+        "uri": fields.Url("api.user"),
     },
     strict=True,
 )

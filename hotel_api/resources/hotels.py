@@ -20,7 +20,7 @@ hotel_fields = hotels_ns.model(
         "total_double_rooms": fields.Integer(example=6),
         "total_queen_rooms": fields.Integer(example=4),
         "total_king_rooms": fields.Integer(example=21),
-        "uri": fields.Url("hotel", example="/hotels/1"),
+        "uri": fields.Url("api.hotel", example="/hotels/1"),
     },
 )
 

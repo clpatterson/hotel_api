@@ -11,7 +11,7 @@ checkout_date = checkout_date.strftime("%Y-%m-%d")
 class TestReservationList(object):
     def test_reservationList_get(self, client, db):
         """Reservation list endpoint should return 200 and list of all reservations."""
-        response = client.get(url_for("reservations"))
+        response = client.get(url_for("api.reservations"))
 
         assert response.status_code == 200
         assert len(response.get_json()) == 3
@@ -27,7 +27,7 @@ class TestReservationList(object):
             "desired_room_type": "king",
             "hotel_id": 1,
         }
-        response = client.post(url_for("reservations"), json=data)
+        response = client.post(url_for("api.reservations"), json=data)
 
         assert response.status_code == 201
         assert response.get_json()["checkin_date"] == checkin_date
@@ -43,7 +43,7 @@ class TestReservationList(object):
             "desired_room_type": "double",
             "hotel_id": 1,
         }
-        response = client.post(url_for("reservations"), json=data)
+        response = client.post(url_for("api.reservations"), json=data)
 
         print(response.get_json())
 
@@ -58,7 +58,7 @@ class TestReservationList(object):
             "customer_user_id": 4,
             "desired_room_type": "double",
         }
-        response = client.post(url_for("reservations"), json=data)
+        response = client.post(url_for("api.reservations"), json=data)
 
         print(response.get_json())
 
@@ -76,7 +76,7 @@ class TestReservationList(object):
         }
 
         for i in range(4):  # There are max 3 rooms available in all hotels
-            response = client.post(url_for("reservations"), json=data)
+            response = client.post(url_for("api.reservations"), json=data)
 
         assert response.status_code == 400
 
@@ -84,14 +84,14 @@ class TestReservationList(object):
 class TestReservation(object):
     def test_reservation_get_valid_id(self, client, db):
         """Reservation endpoint should return 200 and data for valid reservation id."""
-        response = client.get(url_for("reservation", id=1))
+        response = client.get(url_for("api.reservation", id=1))
 
         assert response.status_code == 200
         assert response.get_json()["guest_full_name"] == "Roger Briggs"
 
     def test_reseration_get_invalid_id(self, client, db):
         """Reservation endpoint should return 404 when supplied invalid reservation id."""
-        response = client.get(url_for("reservation", id=3000))
+        response = client.get(url_for("api.reservation", id=3000))
 
         assert response.status_code == 404
 
@@ -108,7 +108,7 @@ class TestReservation(object):
             "hotel_id": 1,
         }  # change room type from king to double
 
-        response = client.put(url_for("reservation", id=4), json=data)
+        response = client.put(url_for("api.reservation", id=4), json=data)
 
         assert response.status_code == 200
         assert response.get_json()["desired_room_type"] == "double"
@@ -124,19 +124,19 @@ class TestReservation(object):
             "hotel_id": 1,
         }  # change dates to invalid range
 
-        response = client.put(url_for("reservation", id=4), json=data)
+        response = client.put(url_for("api.reservation", id=4), json=data)
 
         assert response.status_code == 400
 
     def test_reservation_valid_delete(self, client, db):
         """Reservation endpoint should return 200 and delete message for valid deletion request."""
-        response = client.delete(url_for("reservation", id=4))
+        response = client.delete(url_for("api.reservation", id=4))
 
         assert response.status_code == 200
         assert "cancelled" in response.get_json()
 
     def test_reservation_invalid_delete(self, client, db):
         """Reservation endpoint should return 404 for invalid reservation id."""
-        response = client.delete(url_for("reservation", id=3000))
+        response = client.delete(url_for("api.reservation", id=3000))
 
         assert response.status_code == 404
