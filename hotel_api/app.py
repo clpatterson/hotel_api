@@ -1,21 +1,19 @@
 from flask import Flask
+
+from config.settings import config
 from hotel_api.extensions import api, db
 
 
-def create_app(settings_override=None):
+def create_app(config_name="development"):
     """
     Create a Flask application using the app factory pattern.
 
     :param settings_override: Override settings
     :return: Flask app
     """
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__)
 
-    app.config.from_object("config.settings")
-    app.config.from_pyfile("settings.py", silent=True)
-
-    if settings_override:
-        app.config.update(settings_override)
+    app.config.from_object(config[config_name])
 
     from hotel_api.resources.reservations import reservations_ns
     from hotel_api.resources.hotels import hotels_ns

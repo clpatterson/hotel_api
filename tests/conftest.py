@@ -13,10 +13,8 @@ def app():
 
     :return: Flask app
     """
-    db_uri = "{0}_test".format(settings.SQLALCHEMY_DATABASE_URI)
-    params = {"DEBUG": False, "TESTING": True, "SQLALCHEMY_DATABASE_URI": db_uri}
 
-    _app = create_app(settings_override=params)
+    _app = create_app(config_name="testing")
 
     # Establish an application context before running the tests.
     ctx = _app.app_context()

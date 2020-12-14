@@ -6,13 +6,18 @@ ARG uid=1000
 ARG gid=1000
 
 RUN groupadd -g ${gid} ${group} \
-  && useradd -u ${uid} -g ${group} -s /bin/sh ${user}
+    && useradd -u ${uid} -g ${group} -s /bin/sh ${user}
+
+ENV PYTHONUNBUFFERED True
 
 RUN apt-get update && apt-get install -qq -y \
-  build-essential libpq-dev --no-install-recommends
+    build-essential libpq-dev --no-install-recommends
 
 ENV INSTALL_PATH /hotel_api
 RUN mkdir -p $INSTALL_PATH
+
+RUN adduser -D hotel_api
+USER hotel_api
 
 WORKDIR $INSTALL_PATH
 
@@ -24,4 +29,4 @@ RUN pip install --editable .
 
 USER ${user}
 
-CMD gunicorn -b 0.0.0.0:8000 --access-logfile - "hotel_api.app:create_app('config_name='development')"
+CMD gunicorn -b :$PORT --access-logfile - "hotel_api.app:create_app(config_name='production')"
