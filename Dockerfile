@@ -24,4 +24,4 @@ RUN pip install --editable .
 
 USER ${user}
 
-CMD gunicorn -b 0.0.0.0:8000 --access-logfile - "hotel_api.app:create_app('config_name='development')"
+CMD gunicorn -b 0.0.0.0:8000 --access-logfile - "hotel_api.app:create_app()"

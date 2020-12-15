@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 
 from config.settings import config
@@ -12,6 +14,10 @@ def create_app(config_name="development"):
     :return: Flask app
     """
     app = Flask(__name__)
+
+    prod = os.environ.get("PROD")
+    if prod.lower() == "true":
+        config_name = "production"
 
     app.config.from_object(config[config_name])
 
