@@ -17,7 +17,11 @@ class Config(object):
 class ProductionConfig(Config):
     SEVER_NAME = os.environ.get("SERVER_NAME")
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    POSTGRES_USER = os.environ.get("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+    POSTGRES_HOST = os.environ.get("POSTGRES_HOST")
+    db_uri = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/hotel_api"
+    SQLALCHEMY_DATABASE_URI = db_uri
 
 
 class DevelopmentConfig(Config):
