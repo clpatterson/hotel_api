@@ -26,4 +26,4 @@ RUN pip install --editable .
 
 USER ${user}
 
-CMD gunicorn -b :$PORT --access-logfile - "hotel_api.app:create_app(config_name='production')"
+CMD gunicorn -b :8080 --access-logfile - "hotel_api.app:create_app(config_name='production')"
