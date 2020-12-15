@@ -16,9 +16,6 @@ RUN apt-get update && apt-get install -qq -y \
 ENV INSTALL_PATH /hotel_api
 RUN mkdir -p $INSTALL_PATH
 
-RUN adduser -D hotel_api
-USER hotel_api
-
 WORKDIR $INSTALL_PATH
 
 COPY requirements.txt requirements.txt
