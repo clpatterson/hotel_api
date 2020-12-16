@@ -1,5 +1,7 @@
 FROM python:3.7.5-slim-buster
 
+ENV PYTHONUNBUFFERED=true
+
 ARG user=hotel_api
 ARG group=hotel_api
 ARG uid=1000
