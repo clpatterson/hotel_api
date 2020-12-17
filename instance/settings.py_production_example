@@ -1,7 +1,0 @@
-DEBUG = False
-
-SERVER_NAME = 'host'
-SECRET_KEY = 'generateastrong128chartoken'
-
-# SQLAlchemy
-# db_uri = 'postgresql://username:password@your_prod_host:port/database'
