@@ -22,7 +22,7 @@ jobs:
       - name: Check logs
         run: docker-compose logs postgres
       - name: Test database is healthy
-        run: docker-compose exec localhost:5432 pg_isready
+        run: docker-compose exec docker pg_isready -U hotel_api
       - name: Create and seed db
         run: docker-compose exec -T api hotel_api db reset --with-testdb --dev
       - name: Run tests
