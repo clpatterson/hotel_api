@@ -17,6 +17,10 @@ sqlalchemy-utils==0.36.08
 # Utilities
 python-dateutil==2.8.1
 requests==2.24.0
+flask-bcrypt==0.7.1
+
+# Authentication
+pyjwt==1.7.1
 
 # Testing
 pytest==6.1.2

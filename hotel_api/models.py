@@ -1,18 +1,182 @@
 from datetime import datetime, date, timedelta
 
-from flask import abort
+import jwt
+from flask import current_app, abort
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import and_
 
 from lib.util_datetime import daterange, months_out
 from lib.util_sqlalchemy import row2dict
-from hotel_api.extensions import db
+from hotel_api.extensions import db, bcrypt
 
 
 class BaseTable(object):
+    __table_args__ = {"schema": "hotel_api"}
     created_date = db.Column(db.DateTime, nullable=False)
     last_modified_date = db.Column(db.DateTime, nullable=False)
+
+
+class BlacklistedTokens(BaseTable, db.Model):
+    __tablename__ = "blacklisted_tokens"
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(500), unique=True, nullable=False)
+    blacklisted_on = db.Column(db.DateTime)
+    expires_at = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, token, expires_at):
+        self.created_date = datetime.now()
+        self.last_modified_date = datetime.now()
+        self.token = token
+        self.expires_at = datetime.fromtimestamp(expires_at)
+
+    def __repr__(self):
+        return f"<BlacklistToken token={self.token}>"
+
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
+
+        return None
+
+    @classmethod
+    def check_blacklist(cls, token):
+        exists = cls.query.filter_by(token=token).first()
+        return True if exists else False
+
+
+class Users(BaseTable, db.Model):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    user_name = db.Column(db.String(128), nullable=False, unique=True)
+    email = db.Column(db.String(128), nullable=False, unique=True)
+    password = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    is_deactivated = db.Column(db.Boolean, default=False, nullable=False)
+    reservations = db.relationship("Reservations", backref="reservations", lazy=True)
+
+    def __init__(self, user_name="", email="", password=""):
+        self.user_name = user_name.lower()
+        self.email = email.lower()
+        self.password = bcrypt.generate_password_hash(password).decode()
+
+    def __repr__(self):
+        return f"<User_id {self.id}, admin={self.is_admin}>"
+
+    def add(self, admin=False):
+        """
+        Add new user.
+        """
+        # TODO: How should users who wish to reactivate their profile be handled? Reactivate method?
+        # TODO: Validate user names. Should they have special chars, etc?
+        email = Users.query.filter(Users.email == self.email).first()
+        if email:
+            abort(400, "User with this email already exists.")
+
+        user_name = Users.query.filter(Users.user_name == self.user_name).first()
+        if user_name:
+            abort(400, "User with user_name already exists.")
+
+        if admin:
+            self.is_admin = True
+
+        self.created_date = datetime.now()
+        self.last_modified_date = datetime.now()
+        db.session.add(self)
+        db.session.commit()
+
+        return None
+
+    def delete(self):
+        """
+        Deactivate user and cancel all user's outstanding reservations.
+        """
+        self.is_deactivated = True
+
+        for reservation in self.reservations:
+            if not reservation.is_cancelled:
+                reservation.delete()
+
+        self.last_modified_date = datetime.now()
+        db.session.commit()
+
+        return None
+
+    def update(self, args):
+        if args["user_name"]:
+            self.user_name = args["user_name"]
+        if args["email"]:
+            self.email = args["email"]
+
+        self.last_modified_date = datetime.now()
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            if "email_key" in e.orig.args[0]:
+                abort(400, "User with this email already exists. Update failed.")
+            if "user_name_key" in e.orig.args[0]:
+                abort(400, "User with this user_name already exists. Update failed.")
+
+        return None
+
+    def check_password(self, password):
+        """
+        Check provided user password against stored user password.
+        """
+        return bcrypt.check_password_hash(self.password, password)
+
+    def encode_access_token(self):
+        """Return JWT token with expiration, id, and role for user."""
+        now = datetime.now()
+        token_age_h = current_app.config.get("TOKEN_EXPIRE_HOURS")
+        token_age_m = current_app.config.get("TOKEN_EXPIRE_MINUTES")
+        expire = now + timedelta(hours=token_age_h, minutes=token_age_m)
+
+        if current_app.config["TESTING"]:
+            expire = now + timedelta(seconds=5)
+
+        payload = dict(exp=expire, iat=now, sub=self.id, admin=self.is_admin)
+        key = current_app.config.get("SECRET_KEY")
+
+        return jwt.encode(payload, key, algorithm="HS256")
+
+    @staticmethod
+    def decode_access_token(access_token):
+        if isinstance(access_token, bytes):
+            access_token = access_token.decode("ascii")
+
+        if access_token.startswith("Bearer "):
+            split = access_token.split("Bearer")
+            access_token = split[1].strip()
+
+        try:
+            key = current_app.config.get("SECRET_KEY")
+            payload = jwt.decode(access_token, key, algorithms="HS256")
+
+        except jwt.exceptions.ExpiredSignatureError:
+            return dict(
+                status="Failed", message="Access token expired. Please log in again."
+            )
+
+        except jwt.exceptions.InvalidTokenError:
+            return dict(status="Failed", message="Invalid token. Please log in.")
+
+        if BlacklistedTokens.check_blacklist(access_token):
+            return dict(
+                status="Failed", message="Token blacklisted. Please log in again."
+            )
+
+        user_dict = dict(
+            status="Success",
+            id=payload["sub"],
+            admin=payload["admin"],
+            token=access_token,
+            expires_at=payload["exp"],
+        )
+
+        return user_dict
 
 
 class Reservations(BaseTable, db.Model):
@@ -21,8 +185,13 @@ class Reservations(BaseTable, db.Model):
     checkin_date = db.Column(db.Date, nullable=False)
     checkout_date = db.Column(db.Date, nullable=False)
     guest_full_name = db.Column(db.String, nullable=False)
+    customer_user_id = db.Column(
+        db.Integer, db.ForeignKey("hotel_api.users.id"), nullable=False
+    )
     desired_room_type = db.Column(db.String, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey("hotels.id"), nullable=False)
+    hotel_id = db.Column(
+        db.Integer, db.ForeignKey("hotel_api.hotels.id"), nullable=False
+    )
     is_cancelled = db.Column(db.Boolean, nullable=False)
     is_completed = db.Column(db.Boolean, nullable=False)
 
@@ -75,6 +244,12 @@ class Reservations(BaseTable, db.Model):
                     "Cannot alter hotel on reservation.\
                      Cancel and make a new reservation.",
                 )
+            if "customer_user_id" in diff:
+                abort(
+                    400,
+                    "Cannot alter customer on reservation.\
+                     Cancel and make a new reservation.",
+                )
             if "full_guest_name" in diff:
                 print("guest name")
                 self.full_guest_name = args["full_guest_name"]
@@ -113,19 +288,27 @@ class Reservations(BaseTable, db.Model):
                     self.checkout_date = args["checkout_date"]
                     self.desired_room_type = args["desired_room_type"]
                 else:
+                    db.session.rollback()
                     abort(
                         400,
                         "Reservation change failed.\
                         Altered reservation is unavailable.",
                     )
+
         self.last_modified_date = datetime.now()
         db.session.commit()
+
         return None
 
     def delete(self):
+        if self.is_cancelled == True:  # Reservation has already been cancelled.
+            return None
+
         self.is_cancelled = True
         self.last_modified_date = datetime.now()
+
         db.session.commit()
+
         RoomInventory.update_inventory(
             hotel_id=self.hotel_id,
             room_type=self.desired_room_type,
@@ -133,6 +316,7 @@ class Reservations(BaseTable, db.Model):
             checkout_date=self.checkout_date,
             flag="release",
         )
+
         return None
 
 
@@ -333,7 +517,9 @@ class Rooms(BaseTable, db.Model):
     __tablename__ = "rooms"
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey("hotels.id"), nullable=False)
+    hotel_id = db.Column(
+        db.Integer, db.ForeignKey("hotel_api.hotels.id"), nullable=False
+    )
 
     def __repr__(self):
         return f"<Hotel_id {self.hotel_id} Room_id {self.id}>"
@@ -370,7 +556,9 @@ class RoomInventory(BaseTable, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # TODO: These are no longer primary keys
     date = db.Column(db.DateTime, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey("hotels.id"), nullable=False)
+    hotel_id = db.Column(
+        db.Integer, db.ForeignKey("hotel_api.hotels.id"), nullable=False
+    )
     room_type = db.Column(db.String, nullable=False)
     max_rooms_available = db.Column(db.Integer, nullable=False)
     rooms_reserved = db.Column(db.Integer, nullable=False)

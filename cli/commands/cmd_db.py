@@ -28,6 +28,10 @@ def init(with_testdb):
     :param with_testdb: Create a test database
     :return: None
     """
+    # Ensure schema has been created before creating tables.
+    stmt = "CREATE SCHEMA IF NOT EXISTS hotel_api;"
+    db.engine.execute(stmt)
+
     db.drop_all()
     db.create_all()
 
@@ -41,13 +45,14 @@ def init(with_testdb):
 
 
 @click.command()
-def seed():
+@click.option("--dev/ --no-dev", default=False, help="Seeding a dev environment?")
+def seed(dev):
     """
     Seed the database with inital data.
 
     :return:
     """
-    seed_db()
+    seed_db(dev)
 
     return None
 
@@ -56,16 +61,18 @@ def seed():
 @click.option(
     "--with-testdb/ --no-with-testdb", default=False, help="Create a test db too?"
 )
+@click.option("--dev/ --no-dev", default=False, help="Seeding a dev environment?")
 @click.pass_context
-def reset(ctx, with_testdb):
+def reset(ctx, with_testdb, dev):
     """
     Init and seed automatically.
 
     :param with_testdb: Create a test database
+    :param dev: Seed database with dev data
     :return: None
     """
     ctx.invoke(init, with_testdb=with_testdb)
-    ctx.invoke(seed)
+    ctx.invoke(seed, dev=dev)
 
     return None
 
