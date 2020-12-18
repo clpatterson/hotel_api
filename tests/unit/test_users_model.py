@@ -23,11 +23,7 @@ class TestUsersModel(object):
         access_token = user.encode_access_token()
         time.sleep(6)
 
-        try:
-            Users.decode_access_token(access_token)
-        except werkzeug.exceptions.Unauthorized as e:
-            code = e.code
-            message = e.description
+        token = Users.decode_access_token(access_token)
 
-        assert code == 401
-        assert message == "Access token expired. Please log in again."
+        assert token["status"] == "Failed"
+        assert token["message"] == "Access token expired. Please log in again."

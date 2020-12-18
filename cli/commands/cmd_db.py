@@ -28,6 +28,10 @@ def init(with_testdb):
     :param with_testdb: Create a test database
     :return: None
     """
+    # Ensure schema has been created before creating tables.
+    stmt = "CREATE SCHEMA IF NOT EXISTS hotel_api;"
+    db.engine.execute(stmt)
+
     db.drop_all()
     db.create_all()
 

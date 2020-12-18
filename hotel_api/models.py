@@ -12,8 +12,37 @@ from hotel_api.extensions import db, bcrypt
 
 
 class BaseTable(object):
+    __table_args__ = {"schema": "hotel_api"}
     created_date = db.Column(db.DateTime, nullable=False)
     last_modified_date = db.Column(db.DateTime, nullable=False)
+
+
+class BlacklistedTokens(BaseTable, db.Model):
+    __tablename__ = "blacklisted_tokens"
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(500), unique=True, nullable=False)
+    blacklisted_on = db.Column(db.DateTime)
+    expires_at = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, token, expires_at):
+        self.created_date = datetime.now()
+        self.last_modified_date = datetime.now()
+        self.token = token
+        self.expires_at = datetime.fromtimestamp(expires_at)
+
+    def __repr__(self):
+        return f"<BlacklistToken token={self.token}>"
+
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
+
+        return None
+
+    @classmethod
+    def check_blacklist(cls, token):
+        exists = cls.query.filter_by(token=token).first()
+        return True if exists else False
 
 
 class Users(BaseTable, db.Model):
@@ -127,12 +156,20 @@ class Users(BaseTable, db.Model):
             payload = jwt.decode(access_token, key, algorithms="HS256")
 
         except jwt.exceptions.ExpiredSignatureError:
-            abort(401, "Access token expired. Please log in again.")
+            return dict(
+                status="Failed", message="Access token expired. Please log in again."
+            )
 
         except jwt.exceptions.InvalidTokenError:
-            abort(401, "Invalid token. Please log in again")
+            return dict(status="Failed", message="Invalid token. Please log in.")
+
+        if BlacklistedTokens.check_blacklist(access_token):
+            return dict(
+                status="Failed", message="Token blacklisted. Please log in again."
+            )
 
         user_dict = dict(
+            status="Success",
             id=payload["sub"],
             admin=payload["admin"],
             token=access_token,
@@ -148,9 +185,13 @@ class Reservations(BaseTable, db.Model):
     checkin_date = db.Column(db.Date, nullable=False)
     checkout_date = db.Column(db.Date, nullable=False)
     guest_full_name = db.Column(db.String, nullable=False)
-    customer_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    customer_user_id = db.Column(
+        db.Integer, db.ForeignKey("hotel_api.users.id"), nullable=False
+    )
     desired_room_type = db.Column(db.String, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey("hotels.id"), nullable=False)
+    hotel_id = db.Column(
+        db.Integer, db.ForeignKey("hotel_api.hotels.id"), nullable=False
+    )
     is_cancelled = db.Column(db.Boolean, nullable=False)
     is_completed = db.Column(db.Boolean, nullable=False)
 
@@ -476,7 +517,9 @@ class Rooms(BaseTable, db.Model):
     __tablename__ = "rooms"
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey("hotels.id"), nullable=False)
+    hotel_id = db.Column(
+        db.Integer, db.ForeignKey("hotel_api.hotels.id"), nullable=False
+    )
 
     def __repr__(self):
         return f"<Hotel_id {self.hotel_id} Room_id {self.id}>"
@@ -513,7 +556,9 @@ class RoomInventory(BaseTable, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # TODO: These are no longer primary keys
     date = db.Column(db.DateTime, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey("hotels.id"), nullable=False)
+    hotel_id = db.Column(
+        db.Integer, db.ForeignKey("hotel_api.hotels.id"), nullable=False
+    )
     room_type = db.Column(db.String, nullable=False)
     max_rooms_available = db.Column(db.Integer, nullable=False)
     rooms_reserved = db.Column(db.Integer, nullable=False)

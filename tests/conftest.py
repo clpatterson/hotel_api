@@ -54,6 +54,10 @@ def db(app):
     :param app: Pytest fixture
     :return: SQLAlchemy database session
     """
+    # Ensure schema has been created before creating tables.
+    stmt = "CREATE SCHEMA IF NOT EXISTS hotel_api;"
+    _db.engine.execute(stmt)
+
     _db.drop_all()
     _db.create_all()
     print("Database is setup!")

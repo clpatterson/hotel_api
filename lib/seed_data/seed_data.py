@@ -123,11 +123,11 @@ def seed_db(test=False, dev=False):
 
     # Seed only admin user for prod
     else:
-        from instance.settings import SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD
-
+        # TODO: Add SEED_ADMIN_USER and SEED_ADMIN_EMAIL to new config structure as env vars
+        user = {}
         user["user_name"] = "admin"
-        user["password"] = SEED_ADMIN_PASSWORD
-        user["email"] = SEED_ADMIN_EMAIL
+        user["password"] = "devpassword"
+        user["email"] = "devemail"
 
         user = Users(**user)
         user.add(admin=True)

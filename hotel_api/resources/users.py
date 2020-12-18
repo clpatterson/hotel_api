@@ -73,8 +73,8 @@ class User(Resource):
         body = request.get_json()
 
         # TODO: Why isn't an error being thrown when I pass an undocumented param like password?
-        if "password" in body.keys():
-            abort(400, "Cannot update password.")
+        # if "password" in body.keys():
+        #     abort(400, "Cannot update password.")
 
         user.update(body)
 
