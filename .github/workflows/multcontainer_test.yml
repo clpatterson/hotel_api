@@ -15,6 +15,10 @@ jobs:
             file_name: .env
       - name: Build app
         run: docker-compose up -d
+      - name: Check running containers
+        run: docker-compose ps -a
+      - name: Check logs
+        run: docker-compose logs app
       - name: Test database is healthy
         run: docker-compose exec localhost:5432 pg_isready
       - name: Create and seed db
