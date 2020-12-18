@@ -143,7 +143,7 @@ class TestAuthLogout(object):
         assert len(blacklist) == 1
         assert access_token == blacklist[0].token
 
-    def test_authlogout_valid_user_(self, client, db):
+    def test_authlogout_valid_user_expired_token(self, client, db):
         """ AuthLogout endpoint should return 200 and message for user with valid token.  """
         user = dict(
             user_name="great_user", email="great.user@email.com", password="greatuser"
@@ -154,6 +154,8 @@ class TestAuthLogout(object):
         assert "access_token" in response.json
         access_token = response.json["access_token"]
 
+        sleep(6)
+
         response = logout_user(client, access_token, **user)
 
-        assert response.status_code == 200
+        assert response.status_code == 401

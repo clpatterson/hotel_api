@@ -1,0 +1,31 @@
+name: build
+on: push
+jobs:
+  run-tests:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Get repo
+        uses: actions/checkout@v2
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v1
+        with:
+            envkey_COMPOSE_PROJECT_NAME: hotel_api
+            envkey_PROD: false
+            envkey_PORT: 8000
+            envkey_POSTGRES_USER: hotel_api
+            envkey_POSTGRES_PASSWORD: devpassword
+            file_name: .env
+      - name: Build app
+        run: docker-compose up -d
+      - name: Check running containers
+        run: docker-compose ps -a
+      - name: Check logs
+        run: docker-compose logs postgres
+      - name: Test database is healthy
+        run: docker-compose exec -T postgres pg_isready -U hotel_api
+      - name: Create and seed db
+        run: docker-compose exec -T api hotel_api db reset --with-testdb --dev
+      - name: Run integration tests
+        run: docker-compose exec -T api py.test tests/integration/
+      - name: Run unit tests
+        run: docker-compose exec -T api py.test tests/unit/
