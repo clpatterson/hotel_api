@@ -1,0 +1,20 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/recurse-dev/hotel_api:latest', '-t', 'gcr.io/recurse-dev/hotel_api:v0.1', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/recurse-dev/hotel_api:latest']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['run', 'deploy', 'hotel-api', 
+        '--image', 'gcr.io/recurse-dev/hotel_api:latest', 
+        '--project', 'recurse-dev', 
+        '--region', 'us-central1', 
+        '--platform', 'managed',
+        '--allow-unauthenticated',
+        '--set-env-vars', '"SECRET_KEY=${_SECRET_KEY}"',
+        '--set-env-vars', '"POSTGRES_USER=${_POSTGRES_USER}"',
+        '--set-env-vars', '"POSTGRES_PASSWORD=${_POSTGRES_PASSWORD}"',
+        '--set-env-vars', '"POSTGRES_HOST=${_POSTGRES_HOST}"',
+        '--set-env-vars', '"PROD=true"',
+        '--set-env-vars', '"SERVER_NAME=${_SERVER_NAME}"',
+        '--max-instances', '2'
+        ]
