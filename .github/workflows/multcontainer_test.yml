@@ -16,6 +16,6 @@ jobs:
       - name: Build app
         run: docker-compose up -d
       - name: Create and seed db
-        run: docker-compose exec -T api hotel_api db reset --with-testdb
+        run: docker-compose exec -T api hotel_api db reset --with-testdb --dev
       - name: Run tests
         run: docker-compose exec -T api py.test hotel_api/tests
