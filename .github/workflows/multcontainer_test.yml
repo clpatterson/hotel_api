@@ -12,6 +12,8 @@ jobs:
             envkey_COMPOSE_PROJECT_NAME: hotel_api
             envkey_PROD: false
             envkey_PORT: 8000
+            envkey_POSTGRES_USER: hotel_api
+            envkey_POSTGRES_PASSWORD: devpassword
             file_name: .env
       - name: Build app
         run: docker-compose up -d
