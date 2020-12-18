@@ -15,6 +15,8 @@ jobs:
             file_name: .env
       - name: Build app
         run: docker-compose up -d
+      - name: Test database is healthy
+        run: docker-compose exec postgres pg_isready
       - name: Create and seed db
         run: docker-compose exec -T api hotel_api db reset --with-testdb --dev
       - name: Run tests
