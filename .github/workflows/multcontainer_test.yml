@@ -1,7 +1,7 @@
-name: integration-tests
+name: build
 on: push
 jobs:
-  test:
+  run-tests:
     runs-on: ubuntu-18.04
     steps:
       - name: Get repo
@@ -25,5 +25,7 @@ jobs:
         run: docker-compose exec -T postgres pg_isready -U hotel_api
       - name: Create and seed db
         run: docker-compose exec -T api hotel_api db reset --with-testdb --dev
-      - name: Run tests
-        run: docker-compose exec -T api py.test hotel_api/tests
+      - name: Run integration tests
+        run: docker-compose exec -T api py.test tests/integration/
+      - name: Run unit tests
+        run: docker-compose exec -T api py.test tests/unit/
